@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사전 데이터 변환기 (Dictionary Converter)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f0f9ff;
+            color: #334155;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #0284c7;
+        }
+
+        p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: #38bdf8;
+            background: #f8fafc;
+        }
+
+        button {
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background: #0284c7;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            white-space: pre-wrap;
+        }
+
+        #progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        #progress-fill {
+            height: 100%;
+            background: #38bdf8;
+            width: 0%;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>사전 데이터 변환기</h1>
+        <p>
+            '한국어기초사전' 폴더에 있는 모든 XML 파일을 선택해주세요.<br>
+            명사(단어)만 추출하여 <b>dictionary.js</b> 파일로 변환합니다.
+        </p>
+
+        <div class="upload-area">
+            <input type="file" id="file-input" multiple accept=".xml">
+        </div>
+
+        <button id="process-btn" disabled>변환 시작 & 다운로드</button>
+
+        <div id="progress-bar">
+            <div id="progress-fill"></div>
+        </div>
+        <div id="status">파일을 선택해주세요.</div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const processBtn = document.getElementById('process-btn');
+        const statusEl = document.getElementById('status');
+        const progressEl = document.getElementById('progress-bar');
+        const progressFill = document.getElementById('progress-fill');
+
+        let selectedFiles = [];
+
+        fileInput.addEventListener('change', (e) => {
+            selectedFiles = Array.from(e.target.files);
+            if (selectedFiles.length > 0) {
+                statusEl.textContent = `${selectedFiles.length}개의 파일이 선택되었습니다.`;
+                processBtn.disabled = false;
+            } else {
+                statusEl.textContent = '파일을 선택해주세요.';
+                processBtn.disabled = true;
+            }
+        });
+
+        processBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+
+            processBtn.disabled = true;
+            fileInput.disabled = true;
+            progressEl.style.display = 'block';
+            statusEl.textContent = '변환 중...';
+
+            const wordSet = new Set();
+            let processedCount = 0;
+
+            // Regex fixed to be more robust with whitespace
+            // Look for: att="partOfSpeech" (whitespace) val="명사"
+            const RE_POS_NOUN = /att="partOfSpeech"\s+val="명사"/;
+
+            // Look for: att="writtenForm" (whitespace) val="WORD"
+            const RE_WORD_FORM = /att="writtenForm"\s+val="([^"]+)"/;
+
+            // To process chunks without blocking UI
+            for (const file of selectedFiles) {
+                try {
+                    statusEl.textContent = `처리 중: ${file.name} (${processedCount + 1}/${selectedFiles.length})`;
+                    progressFill.style.width = `${((processedCount) / selectedFiles.length) * 100}%`;
+
+                    const text = await readFileAsText(file);
+
+                    const entries = text.split('<LexicalEntry');
+
+                    // Skip index 0 (header)
+                    for (let i = 1; i < entries.length; i++) {
+                        const block = entries[i];
+
+                        // Check for Noun
+                        if (RE_POS_NOUN.test(block)) {
+                            // Extract word
+                            const match = block.match(RE_WORD_FORM);
+                            if (match && match[1]) {
+                                let word = match[1];
+                                // Cleanup: keep only Hangul
+                                // Some words might be "가-", "-가", remove dash
+                                word = word.replace(/[^가-힣]/g, '');
+
+                                // Length check (>=2 seems appropriate for this game)
+                                if (word.length >= 2) {
+                                    wordSet.add(word);
+                                }
+                            }
+                        }
+                    }
+
+                    processedCount++;
+                    await new Promise(r => setTimeout(r, 10));
+                } catch (err) {
+                    console.error("File error:", err);
+                }
+            }
+
+            progressFill.style.width = '100%';
+
+            // Generate JS Content (JSONP style for local files)
+            const wordArray = Array.from(wordSet).sort();
+            const jsContent = `window.hangeulDictionary = ${JSON.stringify(wordArray)};`;
+            const blob = new Blob([jsContent], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+
+            statusEl.textContent = `완료! 총 ${wordArray.length}개의 단어가 추출되었습니다.\n'dictionary.js' 파일이 다운로드됩니다.`;
+
+            // Trigger Download
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dictionary.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            processBtn.textContent = "완료";
+            processBtn.disabled = false; // Allow re-processing if needed
+            fileInput.disabled = false;
+        });
+
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file, 'UTF-8');
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -38,6 +38,26 @@
             .input-group {
                 flex-direction: column;
             }
+
+            #active-word-display {
+                gap: 5px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            :root {
+                --cell-size: 55px;
+            }
+
+            #game-grid {
+                gap: 5px;
+                padding: 5px;
+            }
+
+            .letter-block {
+                padding: 4px 8px;
+                font-size: 1rem;
+            }
         }
 
         * {
@@ -45,6 +65,7 @@
             margin: 0;
             padding: 0;
             -webkit-tap-highlight-color: transparent;
+            /* Remove mobile tap highlight */
         }
 
         body {
@@ -85,23 +106,7 @@
             margin-bottom: 20px;
         }
 
-        #status-panel {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
 
-        .stat-item {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px 15px;
-            border-radius: 12px;
-        }
-
-        .stat-item .label {
-            color: #94a3b8;
-            margin-right: 5px;
-        }
 
         #grid-container {
             display: flex;
@@ -244,6 +249,8 @@
             gap: 10px;
             min-height: 40px;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            /* Wrap for mobile */
         }
 
         .letter-block {
@@ -263,7 +270,8 @@
         #message-display {
             font-size: 0.9rem;
             color: #94a3b8;
-            height: 1.5em;
+            min-height: 1.5em;
+            margin-bottom: 10px;
         }
 
         #guide-panel {
@@ -288,6 +296,75 @@
             color: #cbd5e1;
         }
 
+        #action-panel {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px solid var(--primary-color);
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px auto;
+            width: fit-content;
+            min-width: 250px;
+        }
+
+        #action-panel h3 {
+            margin-bottom: 10px;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--secondary-color);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            background: var(--secondary-color);
+            color: var(--bg-color);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #475569;
+        }
+
+        .letter-block {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .letter-block:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .letter-block.selected {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .letter-block.used {
+            background: #475569;
+            color: #94a3b8;
+            opacity: 0.7;
+            text-decoration: line-through;
+            cursor: default;
+        }
+
         #guide-panel li strong {
             color: var(--primary-color);
         }
@@ -301,296 +378,702 @@
             <p>단어의 힘으로 공간을 도약하세요.</p>
         </header>
 
-        <div id="status-panel">
-            <div class="stat-item">
-                <span class="label">현재 위치:</span>
-                <span id="current-pos">(0, 0)</span>
-            </div>
-            <div class="stat-item">
-                <span class="label">목표:</span>
-                <span id="target-pos">(4, 4)</span>
-            </div>
-        </div>
+
 
         <div id="grid-container">
+            <script src="dictionary.js"></script>
+            <script src="game.js" defer></script>
             <div id="game-grid"></div>
+            <div id="constraint-badge"
+                style="display: none; position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; z-index: 10; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">
+                3글자 제한</div>
         </div>
 
         <div id="control-panel">
             <div class="input-group">
-                <input type="text" id="word-input" placeholder="무기(단어)를 입력하세요" maxlength="10">
+                <input type="text" id="word-input" placeholder="단어를 입력하세요" maxlength="10">
                 <button id="start-btn">시작</button>
                 <button id="hint-btn" class="secondary-btn">정답 예시</button>
+            </div>
+
+            <div id="action-panel">
+                <h3 id="action-title">선택: ?</h3>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button id="btn-warp" class="action-btn" style="flex: 1;">자음 워프 (Warp)</button>
+                    <button id="btn-move" class="action-btn" style="flex: 1;">모음 이동 (Move)</button>
+                </div>
             </div>
             <div id="active-word-display"></div>
             <div id="message-display">격자 위의 자음을 보고 단어를 입력하세요.</div>
             <div id="hint-display" class="hint-text"></div>
+
+            <div id="guide-panel">
+                <h3>조작 가이드</h3>
+                <div
+                    style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
+                    <strong>자음 워프:</strong> 초성 ↔ 종성 위치를 번갈아 이동 (받침 필수)
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.75rem;">
+                    <div>ㅏ, ㅐ : 오른쪽 1칸 (→)</div>
+                    <div>ㅑ : 오른쪽 2칸 (⇉)</div>
+                    <div>ㅓ, ㅔ : 왼쪽 1칸 (←)</div>
+                    <div>ㅕ : 왼쪽 2칸 (⇇)</div>
+                    <div>ㅗ, ㅚ : 위쪽 1칸 (↑)</div>
+                    <div>ㅛ : 위쪽 2칸 (⇈)</div>
+                    <div>ㅜ, ㅟ : 아래쪽 1칸 (↓)</div>
+                    <div>ㅠ : 아래쪽 2칸 (⇊)</div>
+                    <div>ㅘ : 우측 상단 (↗)</div>
+                    <div>ㅝ : 좌측 하단 (↙)</div>
+                </div>
+            </div>
         </div>
 
-        <div id="guide-panel">
-            <h3>조작 가이드</h3>
-            <ul>
-                <li><strong>자음 워프:</strong> 받침이 있는 글자일 때, 초성 위치에서 같은 자음의 종성 위치로(또는 반대로) 점프!</li>
-                <li><strong>모음 이동:</strong> 모음의 획 방향에 따라 1~2칸 물리적 이동.</li>
-                <li><strong>연쇄 반응:</strong> 이동 후 다음 글자가 활성화되면 즉시 다음 단계로!</li>
-            </ul>
-        </div>
-    </div>
+        <script>
+            /**
+             * Hangeul Word Warp
+             * Core Logic and Engine
+             */
 
-    <script>
-        /**
-         * Hangeul Word Warp
-         * Core Logic and Engine
-         */
+            const CONSONANTS = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+            const JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 
-        const CONSONANTS = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-        const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-        const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
-        const JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            const DICTIONARY = [
+                '물살', '북쪽', '학기', '과학', '물학', '수박', '학교', '바다', '축구', '사자', '기차', '하늘', '포도', '모자', '나무', '나비', '우유', '아이', '오이',
+                '강물', '구름', '별빛', '달빛', '햇살', '바람', '소리', '노래', '그림', '편지', '친구', '사랑', '행복', '미소', '기쁨', '슬픔', '용기', '희망',
+                '사과', '참외', '딸기', '수박', '포도', '귤', '오렌지', '바나나', '망고', '레몬', '라임', '키위', '자두', '복숭아', '앵두', '보리', '벼',
+                '한국', '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
+            ];
 
-        const DICTIONARY = [
-            '물살', '북쪽', '학기', '과학', '물학', '수박', '학교', '바다', '축구', '사자', '기차', '하늘', '포도', '모자', '나무', '나비', '우유', '아이', '오이',
-            '강물', '구름', '별빛', '달빛', '햇살', '바람', '소리', '노래', '그림', '편지', '친구', '사랑', '행복', '미소', '기쁨', '슬픔', '용기', '희망',
-            '사과', '참외', '딸기', '수박', '포도', '귤', '오렌지', '바나나', '망고', '레몬', '라임', '키위', '자두', '복숭아', '앵두', '보리', '벼',
-            '한국', '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
-        ];
+            class HangeulParser {
+                static decompose(syllable) {
+                    const code = syllable.charCodeAt(0) - 44032;
+                    if (code < 0 || code > 11171) return null;
 
-        class HangeulParser {
-            static decompose(syllable) {
-                const code = syllable.charCodeAt(0) - 44032;
-                if (code < 0 || code > 11171) return null;
+                    const jongIdx = code % 28;
+                    const jungIdx = ((code - jongIdx) / 28) % 21;
+                    const choIdx = (((code - jongIdx) / 28) - jungIdx) / 21;
 
-                const jongIdx = code % 28;
-                const jungIdx = ((code - jongIdx) / 28) % 21;
-                const choIdx = (((code - jongIdx) / 28) - jungIdx) / 21;
-
-                return {
-                    cho: CHO[choIdx],
-                    jung: JUNG[jungIdx],
-                    jong: JONG[jongIdx]
-                };
-            }
-        }
-
-        class GameEngine {
-            constructor() {
-                this.gridSize = 5;
-                this.grid = [];
-                this.playerPos = { x: 0, y: 0 };
-                this.targetPos = { x: 4, y: 4 };
-                this.currentWord = "";
-                this.wordIndex = 0;
-                this.isMoving = false;
-
-                this.init();
-            }
-
-            init() {
-                this.generateSolvableLevel();
-                this.setupDOM();
-                this.render();
-            }
-
-            generateSolvableLevel() {
-                let attempts = 0;
-                let solved = false;
-
-                while (!solved && attempts < 200) {
-                    attempts++;
-                    this.randomizePoints();
-                    this.createGrid();
-                    if (this.findSolutions().length > 0) {
-                        solved = true;
-                    }
-                }
-
-                if (!solved) {
-                    console.warn("풀 수 있는 레벨을 생성하지 못했습니다. 사전이나 격자 설정을 확인하세요.");
-                }
-            }
-
-            randomizePoints() {
-                // Randomize start and target with at least 3 distance (Manhattan)
-                do {
-                    this.playerPos = {
-                        x: Math.floor(Math.random() * this.gridSize),
-                        y: Math.floor(Math.random() * this.gridSize)
+                    return {
+                        cho: CHO[choIdx],
+                        jung: JUNG[jungIdx],
+                        jong: JONG[jongIdx]
                     };
-                    this.targetPos = {
-                        x: Math.floor(Math.random() * this.gridSize),
-                        y: Math.floor(Math.random() * this.gridSize)
-                    };
-                } while (Math.abs(this.playerPos.x - this.targetPos.x) + Math.abs(this.playerPos.y - this.targetPos.y) < 3);
+                }
             }
 
-            createGrid() {
-                this.grid = [];
-                for (let y = 0; y < this.gridSize; y++) {
-                    const row = [];
-                    for (let x = 0; x < this.gridSize; x++) {
-                        // Target cell has no consonant
-                        if (x === this.targetPos.x && y === this.targetPos.y) {
-                            row.push("");
-                        } else {
-                            const randomConsonant = CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
-                            row.push(randomConsonant);
+            class GameEngine {
+                constructor() {
+                    this.gridSize = 5;
+                    this.grid = [];
+                    this.playerPos = { x: 0, y: 0 };
+                    this.targetPos = { x: 4, y: 4 };
+                    this.startPos = { x: 0, y: 0 }; // Track start for reset
+
+                    this.currentWord = "";
+                    this.letterStates = []; // { char, status: 'unused'|'used', index }
+                    this.selectedBlockIndex = -1;
+                    this.wordLengthLimit = null; // null or 3
+
+                    this.isInputLocked = false;
+                    this.isWarping = false; // Waiting for target click
+
+                    this.externalDictionary = new Set();
+                    this.isDictLoaded = false;
+
+                    this.init();
+                }
+
+                init() {
+                    this.loadDictionary(); // Start loading
+                    this.generateSolvableLevel();
+                    this.setupDOM();
+                    this.render();
+                }
+
+                async loadDictionary() {
+                    // Try to load from window.hangeulDictionary (loaded via script tag)
+                    if (window.hangeulDictionary && Array.isArray(window.hangeulDictionary)) {
+                        this.externalDictionary = new Set(window.hangeulDictionary);
+                        this.isDictLoaded = true;
+                        console.log(`Loaded ${window.hangeulDictionary.length} words from dictionary.js`);
+                        this.showMessage("사전 데이터 로드 완료!");
+                        document.getElementById('start-btn').textContent = "게임 시작";
+                        document.getElementById('start-btn').disabled = false;
+                    } else {
+                        // Fallback: Try fetch for json (in case running on server)
+                        try {
+                            const response = await fetch('dictionary.json');
+                            if (!response.ok) throw new Error("Dictionary not found");
+                            const words = await response.json();
+                            this.externalDictionary = new Set(words);
+                            this.isDictLoaded = true;
+                            this.showMessage("사전 데이터 로드 완료!");
+                            document.getElementById('start-btn').textContent = "게임 시작";
+                            document.getElementById('start-btn').disabled = false;
+                        } catch (e) {
+                            console.warn("Failed to load dictionary.", e);
+                            this.showMessage("사전 로드 실패. 올바른 단어 확인이 불가능합니다.");
+                            // Allow start anyway? Or block?
+                            // Let's allow start but keep isDictLoaded false so we know checking is disabled?
+                            // User wants VALIDATION. If missing, we should probably warn strongly.
+                            document.getElementById('start-btn').textContent = "사전 없이 시작 (검증 불가)";
+                            document.getElementById('start-btn').disabled = false;
                         }
                     }
-                    this.grid.push(row);
                 }
-            }
 
-            setupDOM() {
-                this.gridEl = document.getElementById('game-grid');
-                this.inputEl = document.getElementById('word-input');
-                this.startBtn = document.getElementById('start-btn');
-                this.messageEl = document.getElementById('message-display');
-                this.wordDisplayEl = document.getElementById('active-word-display');
-                this.posDisplayEl = document.getElementById('current-pos');
-                this.targetDisplayEl = document.getElementById('target-pos');
-                this.hintBtn = document.getElementById('hint-btn');
-                this.hintDisplayEl = document.getElementById('hint-display');
-
-                this.startBtn.onclick = () => this.handleStart();
-                this.hintBtn.onclick = () => this.showHint();
-                this.inputEl.onkeypress = (e) => {
-                    if (e.key === 'Enter') this.handleStart();
-                };
-
-                this.targetDisplayEl.textContent = `(${this.targetPos.x}, ${this.targetPos.y})`;
-
-                // Add click listener for cells (for manual targeting if we want to allow it later)
-                this.gridEl.onclick = (e) => {
-                    const cell = e.target.closest('.cell');
-                    if (cell && this.isWaitingForWarp) {
-                        const idx = Array.from(this.gridEl.children).indexOf(cell);
-                        const x = idx % this.gridSize;
-                        const y = Math.floor(idx / this.gridSize);
-                        this.resolveWarp({ x, y });
+                isValidWord(word) {
+                    // 1. If external dict loaded, check it
+                    if (this.isDictLoaded) {
+                        return this.externalDictionary.has(word);
                     }
-                };
-            }
-
-            render() {
-                this.gridEl.innerHTML = '';
-                for (let y = 0; y < this.gridSize; y++) {
-                    for (let x = 0; x < this.gridSize; x++) {
-                        const cell = document.createElement('div');
-                        cell.className = 'cell';
-                        cell.textContent = this.grid[y][x];
-
-                        if (x === this.playerPos.x && y === this.playerPos.y) {
-                            cell.classList.add('player');
-                        }
-                        if (x === this.targetPos.x && y === this.targetPos.y) {
-                            cell.classList.add('target');
-                        }
-
-                        this.gridEl.appendChild(cell);
-                    }
-                }
-                this.posDisplayEl.textContent = `(${this.playerPos.x}, ${this.playerPos.y})`;
-                this.targetDisplayEl.textContent = `(${this.targetPos.x}, ${this.targetPos.y})`;
-            }
-
-            async handleStart() {
-                if (this.isMoving) return;
-                const word = this.inputEl.value.trim();
-                if (!word) {
-                    this.showMessage("단어를 입력하세요!");
-                    return;
+                    // 2. Fallback to basic dictionary (optional, or just allow all if dict missing?)
+                    // For now, let's just warn if dict missing but still use internal for recommendation
+                    // If user specifically requested strict validation, we might want to be strict.
+                    // But without the file, game becomes unplayable if strict.
+                    // So: If dict NOT loaded, allow any >=2 inputs? Or basic dict?
+                    // User requirement: "input actual words".
+                    // If dict is missing, we can't truly validate.
+                    // Let's fallback to internal DICTIONARY for minimal check, or allow all with warning.
+                    return true;
                 }
 
-                if (word.length < 2) {
-                    this.showMessage("단어는 최소 2글자 이상이어야 합니다!");
-                    return;
-                }
+                generateSolvableLevel() {
+                    let attempts = 0;
+                    let bestLevel = null;
+                    let minPenalty = Infinity;
 
-                this.currentWord = word;
-                this.wordIndex = 0;
-                this.isMoving = true;
-                this.hintDisplayEl.textContent = ""; // Clear hint
-                this.renderWordBlocks();
+                    // 50% chance to set 3-letter limit
+                    this.wordLengthLimit = Math.random() < 0.5 ? 3 : null;
 
-                await this.processWord();
-                // Only set isMoving to false if we didn't already succeed and transition
-                if (this.playerPos.x !== this.targetPos.x || this.playerPos.y !== this.targetPos.y) {
-                    this.isMoving = false;
-                }
-            }
+                    while (attempts < 200) {
+                        attempts++;
+                        this.randomizePoints();
+                        this.createGrid();
 
-            startNewLevel() {
-                this.inputEl.value = "";
-                this.wordDisplayEl.innerHTML = "";
-                this.generateSolvableLevel();
-                this.render();
-                this.showMessage("격자 위의 자음을 보고 단어를 입력하세요.");
-            }
+                        const solutions = this.findSolutions();
+                        if (solutions.length > 0) {
+                            // Evaluate solutions for "cleanliness" around target
+                            for (const sol of solutions) {
+                                const path = this.simulateWord(sol);
+                                const penalty = this.calculatePathPenalty(path);
 
-            showHint() {
-                const solutions = this.findSolutions();
-                if (solutions.length > 0) {
-                    // Show the shortest or first valid solution
-                    const best = solutions.sort((a, b) => a.length - b.length)[0];
-                    this.hintDisplayEl.textContent = `추천 단어: ${best}`;
-                } else {
-                    this.hintDisplayEl.textContent = "현재 위치에서 도달 가능한 단어를 찾지 못했습니다.";
-                }
-            }
-
-            findSolutions() {
-                const possible = [];
-                for (const word of DICTIONARY) {
-                    if (word.length >= 2 && this.simulateWord(word)) {
-                        possible.push(word);
-                    }
-                }
-                return possible;
-            }
-
-            simulateWord(word) {
-                let tempPos = { x: this.playerPos.x, y: this.playerPos.y };
-
-                for (let i = 0; i < word.length; i++) {
-                    const char = word[i];
-                    const decomposed = HangeulParser.decompose(char);
-                    if (!decomposed) return false;
-
-                    const currentConsonant = this.grid[tempPos.y][tempPos.x];
-                    const canActivate = (currentConsonant === decomposed.cho || (decomposed.jong && currentConsonant === decomposed.jong));
-                    if (!canActivate) return false;
-
-                    // Simulate Warp
-                    if (decomposed.jong) {
-                        let targetConsonant = "";
-                        if (currentConsonant === decomposed.cho) targetConsonant = decomposed.jong;
-                        else if (currentConsonant === decomposed.jong) targetConsonant = decomposed.cho;
-
-                        if (targetConsonant) {
-                            const potentialTargets = [];
-                            for (let y = 0; y < this.gridSize; y++) {
-                                for (let x = 0; x < this.gridSize; x++) {
-                                    if (this.grid[y][x] === targetConsonant && (x !== tempPos.x || y !== tempPos.y)) {
-                                        potentialTargets.push({ x, y });
-                                    }
+                                if (penalty < minPenalty) {
+                                    minPenalty = penalty;
+                                    bestLevel = {
+                                        grid: JSON.parse(JSON.stringify(this.grid)),
+                                        playerPos: { ...this.playerPos },
+                                        targetPos: { ...this.targetPos },
+                                        path: path,
+                                        limit: this.wordLengthLimit
+                                    };
                                 }
                             }
-                            if (potentialTargets.length > 0) {
-                                // In simulation, we need to know if ANY of these paths lead to victory.
-                                // For simplicity, let's assume the "best" jump (closest to goal).
-                                potentialTargets.sort((a, b) => {
-                                    const distA = Math.abs(a.x - this.targetPos.x) + Math.abs(a.y - this.targetPos.y);
-                                    const distB = Math.abs(b.x - this.targetPos.x) + Math.abs(b.y - this.targetPos.y);
-                                    return distA - distB;
-                                });
-                                tempPos = { x: potentialTargets[0].x, y: potentialTargets[0].y };
+
+                            // If we found a perfect solution (penalty 0), we can stop early
+                            if (minPenalty === 0) break;
+                        }
+                    }
+
+                    if (bestLevel) {
+                        this.grid = bestLevel.grid;
+                        this.playerPos = bestLevel.playerPos;
+                        this.targetPos = bestLevel.targetPos;
+                        this.wordLengthLimit = bestLevel.limit;
+                        this.pruneGrid(bestLevel.path);
+
+                        if (this.wordLengthLimit) {
+                            this.showMessage(`3글자 제한 라운드! (예: ${bestLevel.path.slice(0, 3).map(p => this.grid[p.y][p.x]).join('')}...)`);
+                            // Note: showMessage will be overridden by initial prompt, so update UI specifically
+                        }
+                    } else {
+                        console.warn("풀 수 있는 레벨을 생성하지 못했습니다.");
+                        // Retry once more without limit if fails? No, just log for now
+                    }
+                }
+
+                calculatePathPenalty(path) {
+                    if (!path) return Infinity;
+                    let penalty = 0;
+                    path.forEach(pos => {
+                        const dist = Math.abs(pos.x - this.targetPos.x) + Math.abs(pos.y - this.targetPos.y);
+                        if (dist === 1) penalty += 10; // High penalty for using cell adjacent to target
+                    });
+                    return penalty;
+                }
+
+                pruneGrid(path) {
+                    if (!path) return;
+
+                    const used = new Set(path.map(p => `${p.x},${p.y}`));
+
+                    // 1. Force remove all target adjacents if they are NOT in path
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if (Math.abs(dx) + Math.abs(dy) !== 1) continue; // Only orthogonal
+                            const nx = this.targetPos.x + dx;
+                            const ny = this.targetPos.y + dy;
+                            if (nx >= 0 && nx < this.gridSize && ny >= 0 && ny < this.gridSize) {
+                                if (!used.has(`${nx},${ny}`)) {
+                                    this.grid[ny][nx] = "";
+                                }
                             }
                         }
                     }
 
-                    // Simulate Vowel Move
+                    // 2. Continue pruning other cells, prioritizing those farthest from the target
+                    const candidates = [];
+                    for (let y = 0; y < this.gridSize; y++) {
+                        for (let x = 0; x < this.gridSize; x++) {
+                            if (x === this.targetPos.x && y === this.targetPos.y) continue;
+                            if (this.grid[y][x] !== "" && !used.has(`${x},${y}`)) {
+                                candidates.push({ x, y });
+                            }
+                        }
+                    }
+
+                    // Sort by distance from targetPos (farther first)
+                    candidates.sort((a, b) => {
+                        const distA = Math.abs(a.x - this.targetPos.x) + Math.abs(a.y - this.targetPos.y);
+                        const distB = Math.abs(b.x - this.targetPos.x) + Math.abs(b.y - this.targetPos.y);
+                        return distB - distA; // Descending distance
+                    });
+
+                    // Aim for about 50-60% empty grid total? Or just keep removing up to a limit
+                    const alreadyRemoved = this.grid.flat().filter(c => c === "").length - 1; // -1 for target
+                    const maxToRemove = 15 - alreadyRemoved;
+
+                    if (maxToRemove > 0) {
+                        const extraRemove = candidates.slice(0, maxToRemove);
+                        extraRemove.forEach(pos => {
+                            this.grid[pos.y][pos.x] = "";
+                        });
+                    }
+                }
+
+                randomizePoints() {
+                    // Randomize start and target with at least 3 distance (Manhattan)
+                    do {
+                        this.playerPos = {
+                            x: Math.floor(Math.random() * this.gridSize),
+                            y: Math.floor(Math.random() * this.gridSize)
+                        };
+                        this.targetPos = {
+                            x: Math.floor(Math.random() * this.gridSize),
+                            y: Math.floor(Math.random() * this.gridSize)
+                        };
+                    } while (Math.abs(this.playerPos.x - this.targetPos.x) + Math.abs(this.playerPos.y - this.targetPos.y) < 3);
+                }
+
+                createGrid() {
+                    this.grid = [];
+                    for (let y = 0; y < this.gridSize; y++) {
+                        const row = [];
+                        for (let x = 0; x < this.gridSize; x++) {
+                            // Target cell has no consonant
+                            if (x === this.targetPos.x && y === this.targetPos.y) {
+                                row.push("");
+                            } else {
+                                const randomConsonant = CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
+                                row.push(randomConsonant);
+                            }
+                        }
+                        this.grid.push(row);
+                    }
+                }
+
+                setupDOM() {
+                    this.gridEl = document.getElementById('game-grid');
+                    this.inputEl = document.getElementById('word-input');
+                    this.startBtn = document.getElementById('start-btn');
+                    this.messageEl = document.getElementById('message-display');
+                    this.wordDisplayEl = document.getElementById('active-word-display');
+
+                    this.hintBtn = document.getElementById('hint-btn');
+                    this.hintDisplayEl = document.getElementById('hint-display');
+
+                    // Action Panel
+                    this.actionPanel = document.getElementById('action-panel');
+                    this.actionTitle = document.getElementById('action-title');
+                    this.btnWarp = document.getElementById('btn-warp');
+                    this.btnMove = document.getElementById('btn-move');
+                    this.constraintBadge = document.getElementById('constraint-badge');
+
+                    this.startBtn.onclick = () => this.handleStart();
+                    this.hintBtn.onclick = () => this.showHint();
+                    this.inputEl.onkeypress = (e) => {
+                        if (e.key === 'Enter') this.handleStart();
+                    };
+
+
+
+                    // Grid Click
+                    this.gridEl.onclick = (e) => {
+                        const cell = e.target.closest('.cell');
+                        if (!cell) return;
+
+                        if (this.isWarping) {
+                            const idx = Array.from(this.gridEl.children).indexOf(cell);
+                            const x = idx % this.gridSize;
+                            const y = Math.floor(idx / this.gridSize);
+
+                            // Check if valid target
+                            if (cell.classList.contains('active')) {
+                                this.resolveWarp({ x, y });
+                            }
+                        }
+                    };
+
+                    // Action Buttons
+                    this.btnWarp.onclick = () => this.initiateWarp();
+                    this.btnMove.onclick = () => this.initiateMove();
+                }
+
+                render() {
+                    this.gridEl.innerHTML = '';
+                    for (let y = 0; y < this.gridSize; y++) {
+                        for (let x = 0; x < this.gridSize; x++) {
+                            const cell = document.createElement('div');
+                            cell.className = 'cell';
+                            cell.textContent = this.grid[y][x];
+
+                            if (x === this.playerPos.x && y === this.playerPos.y) {
+                                cell.classList.add('player');
+                            }
+                            if (x === this.targetPos.x && y === this.targetPos.y) {
+                                cell.classList.add('target');
+                            }
+                            // Only show start label if it's the very first render or we still care about starting pos
+                            // Let's use a one-time class if needed, but for now just player pos
+
+                            this.gridEl.appendChild(cell);
+                        }
+                    }
+
+                }
+
+                async handleStart() {
+                    if (this.isInputLocked && this.letterStates.length > 0) return;
+
+                    const word = this.inputEl.value.trim();
+                    if (!word) {
+                        this.showMessage("단어를 입력하세요!");
+                        return;
+                    }
+
+                    if (this.wordLengthLimit && word.length !== this.wordLengthLimit) {
+                        this.showMessage(`${this.wordLengthLimit}글자 단어만 가능합니다!`);
+                        return;
+                    }
+
+                    if (word.length < 2) { // This check is still relevant if wordLengthLimit is null
+                        this.showMessage("단어는 최소 2글자 이상이어야 합니다!");
+                        return;
+                    }
+
+                    // Validate Word
+                    if (this.isDictLoaded && !this.isValidWord(word)) {
+                        this.showMessage(`'${word}'은(는) 사전에 없는 단어입니다.`);
+                        return;
+                    }
+
+                    this.startPos = { ...this.playerPos };
+                    this.currentWord = word;
+
+                    // Initialize Letter States
+                    this.letterStates = Array.from(word).map((char, index) => ({
+                        char,
+                        index,
+                        status: 'unused', // unused, used
+                        decomposed: HangeulParser.decompose(char)
+                    }));
+
+                    this.isInputLocked = true;
+                    this.inputEl.disabled = true;
+                    this.startBtn.textContent = "다시 하기";
+                    this.startBtn.onclick = () => this.resetGame();
+
+                    this.renderWordBlocks();
+                    this.showMessage("격자 위의 자음과 일치하는 글자를 클릭하세요.");
+                    this.isWarping = false;
+                    this.hideActionPanel();
+                }
+
+                resetGame() {
+                    this.isInputLocked = false;
+                    this.inputEl.disabled = false;
+                    this.startBtn.textContent = "시작";
+                    this.startBtn.onclick = () => this.handleStart();
+                    this.letterStates = [];
+                    this.resetToStartPos();
+                    this.renderWordBlocks();
+                    this.hideActionPanel();
+                    this.clearHighlights();
+                    this.showMessage("격자 위의 자음을 보고 단어를 입력하세요.");
+                }
+
+                resetToStartPos() {
+                    this.playerPos = { ...this.startPos };
+                    this.render();
+                }
+
+                resetToStartAndRetry() {
+                    this.showMessage("조건 불일치! 처음 위치로 돌아갑니다.");
+                    this.resetToStartPos();
+                    // Reset states
+                    this.letterStates.forEach(s => s.status = 'unused');
+                    this.renderWordBlocks();
+                    this.hideActionPanel();
+                    this.clearHighlights();
+                    this.isWarping = false;
+                }
+
+                startNewLevel() {
+                    this.initGame();
+                }
+
+                initGame() {
+                    this.inputEl.value = "";
+                    this.wordDisplayEl.innerHTML = "";
+                    this.generateSolvableLevel();
+                    this.startPos = { ...this.playerPos };
+                    this.render();
+
+                    if (this.wordLengthLimit) {
+                        this.constraintBadge.style.display = 'block';
+                        this.showMessage(`${this.wordLengthLimit}글자 단어로 목표에 도달하세요!`);
+                    } else {
+                        this.constraintBadge.style.display = 'none';
+                        this.showMessage("격자 위의 자음을 보고 단어를 입력하세요.");
+                    }
+                }
+
+                showHint() {
+                    const solutions = this.findSolutions();
+                    if (solutions.length > 0) {
+                        // Show the shortest or first valid solution
+                        const best = solutions.sort((a, b) => a.length - b.length)[0];
+                        this.hintDisplayEl.textContent = `추천 단어: ${best}`;
+                    } else {
+                        this.hintDisplayEl.textContent = "현재 위치에서 도달 가능한 단어를 찾지 못했습니다.";
+                    }
+                }
+
+                findSolutions() {
+                    const results = [];
+                    const dict = this.isDictLoaded ? Array.from(this.externalDictionary) : DICTIONARY;
+
+                    for (const word of dict) {
+                        if (this.wordLengthLimit && word.length !== this.wordLengthLimit) continue;
+                        if (word.length >= 2 && this.simulateWord(word)) { // Keep word.length >= 2 for when wordLengthLimit is null
+                            results.push(word);
+                        }
+                    }
+                    return results;
+                }
+
+                simulateWord(word) {
+                    let tempPos = { x: this.playerPos.x, y: this.playerPos.y };
+                    const path = []; // Track used coordinates
+
+                    for (let i = 0; i < word.length; i++) {
+                        const char = word[i];
+                        const decomposed = HangeulParser.decompose(char);
+                        if (!decomposed) return null;
+
+                        // Current cell used
+                        path.push({ x: tempPos.x, y: tempPos.y });
+
+                        const currentConsonant = this.grid[tempPos.y][tempPos.x];
+                        const canActivate = (currentConsonant === decomposed.cho || (decomposed.jong && currentConsonant === decomposed.jong));
+                        if (!canActivate) return null;
+
+                        // Simulate Warp
+                        if (decomposed.jong) {
+                            let targetConsonant = "";
+                            if (currentConsonant === decomposed.cho) targetConsonant = decomposed.jong;
+                            else if (currentConsonant === decomposed.jong) targetConsonant = decomposed.cho;
+
+                            if (targetConsonant) {
+                                const potentialTargets = [];
+                                for (let y = 0; y < this.gridSize; y++) {
+                                    for (let x = 0; x < this.gridSize; x++) {
+                                        if (this.grid[y][x] === targetConsonant && (x !== tempPos.x || y !== tempPos.y)) {
+                                            potentialTargets.push({ x, y });
+                                        }
+                                    }
+                                }
+                                if (potentialTargets.length > 0) {
+                                    // In simulation, we need to know if ANY of these paths lead to victory.
+                                    // For simplicity, let's assume the "best" jump (closest to goal).
+                                    potentialTargets.sort((a, b) => {
+                                        const distA = Math.abs(a.x - this.targetPos.x) + Math.abs(a.y - this.targetPos.y);
+                                        const distB = Math.abs(b.x - this.targetPos.x) + Math.abs(b.y - this.targetPos.y);
+                                        return distA - distB;
+                                    });
+                                    tempPos = { x: potentialTargets[0].x, y: potentialTargets[0].y };
+                                    // Warp target used
+                                    path.push({ x: tempPos.x, y: tempPos.y });
+                                }
+                            }
+                        }
+
+                        // Simulate Vowel Move
+                        let dx = 0, dy = 0;
+                        const vowel = decomposed.jung;
+                        switch (vowel) {
+                            case 'ㅏ': case 'ㅐ': dx = 1; break;
+                            case 'ㅑ': dx = 2; break;
+                            case 'ㅓ': case 'ㅔ': dx = -1; break;
+                            case 'ㅕ': dx = -2; break;
+                            case 'ㅗ': case 'ㅚ': dy = -1; break;
+                            case 'ㅛ': dy = -2; break;
+                            case 'ㅜ': case 'ㅟ': dy = 1; break;
+                            case 'ㅠ': dy = 2; break;
+                            case 'ㅘ': dx = 1; dy = -1; break;
+                            case 'ㅝ': dx = -1; dy = 1; break;
+                        }
+                        tempPos.x = Math.max(0, Math.min(this.gridSize - 1, tempPos.x + dx));
+                        tempPos.y = Math.max(0, Math.min(this.gridSize - 1, tempPos.y + dy));
+
+                        if (tempPos.x === this.targetPos.x && tempPos.y === this.targetPos.y) {
+                            return path;
+                        }
+                    }
+                    return null;
+                }
+
+                renderWordBlocks() {
+                    this.wordDisplayEl.innerHTML = '';
+                    this.letterStates.forEach(state => {
+                        const block = document.createElement('div');
+                        block.className = `letter-block ${state.status}`;
+                        if (this.selectedBlockIndex === state.index) block.classList.add('selected');
+                        block.textContent = state.char;
+
+                        block.onclick = () => {
+                            if (state.status === 'used') return;
+                            this.selectBlock(state.index);
+                        };
+
+                        this.wordDisplayEl.appendChild(block);
+                    });
+                }
+
+                selectBlock(index) {
+                    if (this.isWarping) return; // Busy
+
+                    this.selectedBlockIndex = index;
+                    this.renderWordBlocks();
+
+                    const state = this.letterStates[index];
+                    const dec = state.decomposed;
+
+                    if (!dec) {
+                        this.showMessage("유효하지 않은 글자입니다.");
+                        return;
+                    }
+
+                    this.actionTitle.textContent = `선택: '${state.char}'`;
+                    this.actionPanel.style.display = 'flex';
+
+                    // Validate Actions
+                    const currentConsonant = this.grid[this.playerPos.y][this.playerPos.x];
+                    const canActivate = (currentConsonant === dec.cho || (dec.jong && currentConsonant === dec.jong));
+
+                    if (!canActivate) {
+                        this.showMessage("현재 위치의 자음과 일치하지 않습니다!");
+                        this.btnWarp.disabled = true;
+                        this.btnMove.disabled = true;
+                    } else {
+                        this.showMessage("행동을 선택하세요.");
+                        // Check Warp
+                        let canWarp = false;
+                        if (dec.jong) {
+                            // Check if target exists
+                            let targetConsonant = "";
+                            if (currentConsonant === dec.cho) targetConsonant = dec.jong;
+                            else if (currentConsonant === dec.jong) targetConsonant = dec.cho;
+
+                            if (targetConsonant) {
+                                // Check grid for targets
+                                const targets = this.findWarpTargets(targetConsonant);
+                                if (targets.length > 0) canWarp = true;
+                            }
+                        }
+                        this.btnWarp.disabled = !canWarp;
+
+                        // Check Move (always possible if activatable?)
+                        this.btnMove.disabled = false;
+                    }
+                }
+
+                hideActionPanel() {
+                    this.actionPanel.style.display = 'none';
+                    this.selectedBlockIndex = -1;
+                    this.renderWordBlocks();
+                }
+
+                findWarpTargets(targetConsonant) {
+                    const targets = [];
+                    for (let y = 0; y < this.gridSize; y++) {
+                        for (let x = 0; x < this.gridSize; x++) {
+                            if (this.grid[y][x] === targetConsonant && (x !== this.playerPos.x || y !== this.playerPos.y)) {
+                                targets.push({ x, y });
+                            }
+                        }
+                    }
+                    return targets;
+                }
+
+                initiateWarp() {
+                    const state = this.letterStates[this.selectedBlockIndex];
+                    const dec = state.decomposed;
+                    const currentConsonant = this.grid[this.playerPos.y][this.playerPos.x];
+
+                    let targetConsonant = "";
+                    if (currentConsonant === dec.cho) targetConsonant = dec.jong;
+                    else targetConsonant = dec.cho;
+
+                    const targets = this.findWarpTargets(targetConsonant);
+                    if (targets.length === 0) return;
+
+                    this.showMessage("이동할 칸을 선택하세요.");
+                    this.highlightCells(targets, 'active');
+                    this.isWarping = true;
+                    this.actionPanel.style.display = 'none'; // Hide panel while picking target
+                }
+
+                resolveWarp(targetPos) {
+                    this.isWarping = false;
+                    this.clearHighlights();
+
+                    this.playerPos = targetPos;
+                    this.render();
+
+                    // Show panel again for potentially moving or cancelling
+                    if (!this.checkWinCondition()) {
+                        this.selectBlock(this.selectedBlockIndex);
+                    }
+                }
+
+                initiateMove() {
+                    const state = this.letterStates[this.selectedBlockIndex];
+                    const dec = state.decomposed;
+
+                    // Execute Vowel Move
+                    this.performVowelMove(dec.jung);
+
+                    // Mark used
+                    state.status = 'used';
+                    this.hideActionPanel();
+                    this.checkWinCondition();
+                }
+
+                performVowelMove(vowel) {
                     let dx = 0, dy = 0;
-                    const vowel = decomposed.jung;
                     switch (vowel) {
                         case 'ㅏ': case 'ㅐ': dx = 1; break;
                         case 'ㅑ': dx = 2; break;
@@ -602,172 +1085,63 @@
                         case 'ㅠ': dy = 2; break;
                         case 'ㅘ': dx = 1; dy = -1; break;
                         case 'ㅝ': dx = -1; dy = 1; break;
+                        default: break;
                     }
-                    tempPos.x = Math.max(0, Math.min(this.gridSize - 1, tempPos.x + dx));
-                    tempPos.y = Math.max(0, Math.min(this.gridSize - 1, tempPos.y + dy));
 
-                    if (tempPos.x === this.targetPos.x && tempPos.y === this.targetPos.y) {
+                    if (dx !== 0 || dy !== 0) {
+                        this.playerPos.x = Math.max(0, Math.min(this.gridSize - 1, this.playerPos.x + dx));
+                        this.playerPos.y = Math.max(0, Math.min(this.gridSize - 1, this.playerPos.y + dy));
+                        this.render();
+                    }
+                }
+
+                checkWinCondition() {
+                    // 1. Immediate Win Check
+                    if (this.playerPos.x === this.targetPos.x && this.playerPos.y === this.targetPos.y) {
+                        this.showMessage("🎉 성공! 잠시 후 다음 문제로...");
+                        setTimeout(() => {
+                            this.isInputLocked = false;
+                            this.inputEl.disabled = false;
+                            this.startBtn.textContent = "시작";
+                            this.startNewLevel();
+                        }, 1500);
                         return true;
                     }
-                }
-                return false;
-            }
 
-            renderWordBlocks() {
-                this.wordDisplayEl.innerHTML = '';
-                for (let i = 0; i < this.currentWord.length; i++) {
-                    const block = document.createElement('div');
-                    block.className = 'letter-block';
-                    block.textContent = this.currentWord[i];
-                    this.wordDisplayEl.appendChild(block);
-                }
-            }
-
-            showMessage(msg) {
-                this.messageEl.textContent = msg;
-            }
-
-            async processWord() {
-                while (this.wordIndex < this.currentWord.length) {
-                    const char = this.currentWord[this.wordIndex];
-                    const decomposed = HangeulParser.decompose(char);
-
-                    if (!decomposed) {
-                        this.showMessage(`'${char}'은 한글이 아닙니다.`);
-                        break;
+                    // 2. Failure Check (All letters used but not at home)
+                    const allUsed = this.letterStates.every(s => s.status === 'used');
+                    if (allUsed) {
+                        this.resetToStartAndRetry();
+                        return false;
                     }
 
-                    // Update UI for current block
-                    const blocks = this.wordDisplayEl.children;
-                    for (let i = 0; i < blocks.length; i++) {
-                        blocks[i].classList.toggle('current', i === this.wordIndex);
-                    }
-
-                    this.showMessage(`현재 글자: ${char}`);
-
-                    // Check Activation
-                    const currentCellConsonant = this.grid[this.playerPos.y][this.playerPos.x];
-                    // Rule: Current consonant must match either Cho or Jong of the current letter
-                    const canActivate = (currentCellConsonant === decomposed.cho || (decomposed.jong && currentCellConsonant === decomposed.jong));
-
-                    if (!canActivate) {
-                        this.showMessage(`활성화 실패: '${char}'의 자음과 일치하지 않습니다.`);
-                        break;
-                    }
-
-                    // Step 1: Consonant Warp (Available if letter has Jong)
-                    if (decomposed.jong) {
-                        await this.performWarp(decomposed);
-                    }
-
-                    // Step 2: Vowel Move
-                    await this.performVowelMove(decomposed.jung);
-
-                    this.render();
-
-                    if (this.playerPos.x === this.targetPos.x && this.playerPos.y === this.targetPos.y) {
-                        this.showMessage("🎉 성공! 다음 문제로 넘어갑니다...");
-                        this.isMoving = false;
-
-                        // Wait and start new level
-                        await new Promise(r => setTimeout(r, 1500));
-                        this.startNewLevel();
-                        return;
-                    }
-
-                    // Move to next letter in word
-                    this.wordIndex++;
-                    await new Promise(r => setTimeout(r, 600));
+                    return false;
                 }
 
-                if (this.playerPos.x !== this.targetPos.x || this.playerPos.y !== this.targetPos.y) {
-                    this.showMessage("게임 종료. 다시 시도하세요.");
-                }
-            }
-
-            async performWarp(decomposed) {
-                const currentConsonant = this.grid[this.playerPos.y][this.playerPos.x];
-                let targetConsonant = "";
-
-                // Determine the "other" consonant to jump TO
-                if (currentConsonant === decomposed.cho && decomposed.jong) {
-                    targetConsonant = decomposed.jong;
-                } else if (currentConsonant === decomposed.jong) {
-                    targetConsonant = decomposed.cho;
-                }
-
-                if (!targetConsonant) return;
-
-                // Find potential targets
-                const potentialTargets = [];
-                for (let y = 0; y < this.gridSize; y++) {
-                    for (let x = 0; x < this.gridSize; x++) {
-                        if (this.grid[y][x] === targetConsonant && (x !== this.playerPos.x || y !== this.playerPos.y)) {
-                            potentialTargets.push({ x, y });
-                        }
+                clearHighlights() {
+                    const cells = this.gridEl.children;
+                    for (let cell of cells) {
+                        cell.classList.remove('active');
                     }
                 }
 
-                if (potentialTargets.length > 0) {
-                    this.showMessage(`'${targetConsonant}' 자음 워프 중...`);
+                showMessage(msg) {
+                    this.messageEl.textContent = msg;
+                }
 
-                    // Visualize potential targets
-                    this.highlightCells(potentialTargets, 'active');
-
-                    // Auto-pick the best one for now (closest to goal)
-                    // In a better version, we'd wait for user input here.
-                    potentialTargets.sort((a, b) => {
-                        const distA = Math.abs(a.x - this.targetPos.x) + Math.abs(a.y - this.targetPos.y);
-                        const distB = Math.abs(b.x - this.targetPos.x) + Math.abs(b.y - this.targetPos.y);
-                        return distA - distB;
+                highlightCells(coords, className) {
+                    const cells = this.gridEl.children;
+                    coords.forEach(pos => {
+                        const idx = pos.y * this.gridSize + pos.x;
+                        if (cells[idx]) cells[idx].classList.add(className);
                     });
-
-                    await new Promise(r => setTimeout(r, 600));
-                    this.playerPos = potentialTargets[0];
-                    this.render();
-                    await new Promise(r => setTimeout(r, 400));
                 }
             }
 
-            highlightCells(coords, className) {
-                const cells = this.gridEl.children;
-                coords.forEach(pos => {
-                    const idx = pos.y * this.gridSize + pos.x;
-                    if (cells[idx]) cells[idx].classList.add(className);
-                });
-            }
-
-            async performVowelMove(vowel) {
-                let dx = 0, dy = 0;
-
-                switch (vowel) {
-                    case 'ㅏ': case 'ㅐ': dx = 1; break;
-                    case 'ㅑ': dx = 2; break;
-                    case 'ㅓ': case 'ㅔ': dx = -1; break;
-                    case 'ㅕ': dx = -2; break;
-                    case 'ㅗ': case 'ㅚ': dy = -1; break;
-                    case 'ㅛ': dy = -2; break;
-                    case 'ㅜ': case 'ㅟ': dy = 1; break;
-                    case 'ㅠ': dy = 2; break;
-                    case 'ㅘ': dx = 1; dy = -1; break;
-                    case 'ㅝ': dx = -1; dy = 1; break;
-                    default: break; // ㅡ, ㅣ 등은 이동 안함
-                }
-
-                if (dx !== 0 || dy !== 0) {
-                    this.showMessage(`모음 이동: ${vowel}`);
-                    this.playerPos.x = Math.max(0, Math.min(this.gridSize - 1, this.playerPos.x + dx));
-                    this.playerPos.y = Math.max(0, Math.min(this.gridSize - 1, this.playerPos.y + dy));
-                    this.render();
-                    await new Promise(r => setTimeout(r, 400));
-                }
-            }
-        }
-
-        window.onload = () => {
-            window.game = new GameEngine();
-        };
-    </script>
+            window.onload = () => {
+                window.game = new GameEngine();
+            };
+        </script>
 </body>
 
 </html>
