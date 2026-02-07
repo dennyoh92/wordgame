@@ -14,21 +14,17 @@
             --accent-color: #f472b6;
             --text-color: #f8fafc;
             --grid-size: 5;
-            --cell-size: 80px;
+            --cell-size: clamp(50px, 15vw, 80px);
         }
 
         @media (max-width: 480px) {
-            :root {
-                --cell-size: 65px;
-            }
-
             #game-container {
                 padding: 15px;
                 border-radius: 16px;
             }
 
             header h1 {
-                font-size: 1.8rem;
+                font-size: 2rem;
             }
 
             .cell {
@@ -37,6 +33,12 @@
 
             .input-group {
                 flex-direction: column;
+                gap: 5px;
+            }
+
+            .secondary-btn,
+            #start-btn {
+                width: 100%;
             }
 
             #active-word-display {
@@ -44,14 +46,14 @@
             }
         }
 
-        @media (max-width: 360px) {
-            :root {
-                --cell-size: 55px;
+        @media (max-width: 380px) {
+            #game-grid {
+                gap: 6px;
+                padding: 6px;
             }
 
-            #game-grid {
-                gap: 5px;
-                padding: 5px;
+            .cell {
+                border-radius: 6px;
             }
 
             .letter-block {
@@ -74,9 +76,10 @@
             color: var(--text-color);
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: flex-start;
+            min-height: 100dvh;
             padding: 10px;
+            overflow-y: auto;
         }
 
         #game-container {
@@ -112,6 +115,7 @@
             display: flex;
             justify-content: center;
             margin-bottom: 25px;
+            position: relative;
         }
 
         #game-grid {
@@ -382,7 +386,6 @@
 
         <div id="grid-container">
             <script src="dictionary.js"></script>
-            <script src="game.js" defer></script>
             <div id="game-grid"></div>
             <div id="constraint-badge"
                 style="display: none; position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; z-index: 10; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">
@@ -397,10 +400,13 @@
             </div>
 
             <div id="action-panel">
-                <h3 id="action-title">선택: ?</h3>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button id="btn-warp" class="action-btn" style="flex: 1;">자음 워프 (Warp)</button>
-                    <button id="btn-move" class="action-btn" style="flex: 1;">모음 이동 (Move)</button>
+                <h3 id="action-title" style="margin-bottom: 8px; color: var(--text-color); font-size: 1.1rem;">선택: ?
+                </h3>
+                <div style="display: flex; gap: 8px; justify-content: center; width: 100%;">
+                    <button id="btn-warp" class="action-btn" style="flex: 1; padding: 10px 5px; font-size: 0.9rem;">자음
+                        워프 (Warp)</button>
+                    <button id="btn-move" class="action-btn" style="flex: 1; padding: 10px 5px; font-size: 0.9rem;">모음
+                        이동 (Move)</button>
                 </div>
             </div>
             <div id="active-word-display"></div>
