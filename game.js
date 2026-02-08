@@ -52,20 +52,97 @@ class GameEngine {
     }
 
     generateSolvableLevel() {
+        const startTime = performance.now();
         let attempts = 0;
         let solved = false;
 
-        while (!solved && attempts < 200) {
+        while (!solved && attempts < 500) {
             attempts++;
-            this.randomizePoints();
-            this.createGrid();
-            if (this.findSolutions().length > 0) {
-                solved = true;
+            const word = DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
+
+            const tempGrid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(""));
+            let currentPos = {
+                x: Math.floor(Math.random() * this.gridSize),
+                y: Math.floor(Math.random() * this.gridSize)
+            };
+            const playerStart = { ...currentPos };
+            let possible = true;
+
+            for (let i = 0; i < word.length; i++) {
+                const char = word[i];
+                const decomposed = HangeulParser.decompose(char);
+                if (!decomposed) { possible = false; break; }
+
+                const startConsonant = decomposed.cho;
+                if (tempGrid[currentPos.y][currentPos.x] !== "" && tempGrid[currentPos.y][currentPos.x] !== startConsonant) {
+                    possible = false; break;
+                }
+                tempGrid[currentPos.y][currentPos.x] = startConsonant;
+
+                if (decomposed.jong) {
+                    let jumpX, jumpY;
+                    let jumpAttempts = 0;
+                    do {
+                        jumpX = Math.floor(Math.random() * this.gridSize);
+                        jumpY = Math.floor(Math.random() * this.gridSize);
+                        jumpAttempts++;
+                    } while ((jumpX === currentPos.x && jumpY === currentPos.y) && jumpAttempts < 20);
+
+                    if (tempGrid[jumpY][jumpX] !== "" && tempGrid[jumpY][jumpX] !== decomposed.jong) {
+                        possible = false; break;
+                    }
+                    tempGrid[jumpY][jumpX] = decomposed.jong;
+                    currentPos = { x: jumpX, y: jumpY };
+                }
+
+                let dx = 0, dy = 0;
+                const vowel = decomposed.jung;
+                switch (vowel) {
+                    case 'ㅏ': case 'ㅐ': dx = 1; break;
+                    case 'ㅑ': case 'ㅒ': dx = 2; break;
+                    case 'ㅓ': case 'ㅔ': dx = -1; break;
+                    case 'ㅕ': case 'ㅖ': dx = -2; break;
+                    case 'ㅗ': case 'ㅚ': dy = -1; break;
+                    case 'ㅛ': dy = -2; break;
+                    case 'ㅜ': case 'ㅟ': dy = 1; break;
+                    case 'ㅠ': dy = 2; break;
+                    case 'ㅘ': case 'ㅙ': dx = 1; dy = -1; break;
+                    case 'ㅝ': dx = -1; dy = 1; break;
+                }
+                const nextX = currentPos.x + dx;
+                const nextY = currentPos.y + dy;
+
+                if (nextX < 0 || nextX >= this.gridSize || nextY < 0 || nextY >= this.gridSize) {
+                    possible = false; break;
+                }
+                currentPos = { x: nextX, y: nextY };
+            }
+
+            if (possible) {
+                const target = { ...currentPos };
+                const manhattan = Math.abs(playerStart.x - target.x) + Math.abs(playerStart.y - target.y);
+                if (manhattan >= 2) {
+                    for (let y = 0; y < this.gridSize; y++) {
+                        for (let x = 0; x < this.gridSize; x++) {
+                            if (tempGrid[y][x] === "") {
+                                tempGrid[y][x] = CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
+                            }
+                        }
+                    }
+                    this.grid = tempGrid;
+                    this.playerPos = playerStart;
+                    this.targetPos = target;
+                    solved = true;
+                    console.log(`Level generated in ${attempts} attempts (${(performance.now() - startTime).toFixed(2)}ms)`);
+                }
             }
         }
 
         if (!solved) {
-            console.warn("풀 수 있는 레벨을 생성하지 못했습니다. 사전이나 격자 설정을 확인하세요.");
+            console.warn("Construction failed, fallback to random.");
+            this.randomizePoints();
+            this.createGrid();
+            this.showMessage && this.showMessage("레벨 생성 실패. 다시 시도해 주세요.");
         }
     }
 
@@ -259,14 +336,14 @@ class GameEngine {
             const vowel = decomposed.jung;
             switch (vowel) {
                 case 'ㅏ': case 'ㅐ': dx = 1; break;
-                case 'ㅑ': dx = 2; break;
+                case 'ㅑ': case 'ㅒ': dx = 2; break;
                 case 'ㅓ': case 'ㅔ': dx = -1; break;
-                case 'ㅕ': dx = -2; break;
+                case 'ㅕ': case 'ㅖ': dx = -2; break;
                 case 'ㅗ': case 'ㅚ': dy = -1; break;
                 case 'ㅛ': dy = -2; break;
                 case 'ㅜ': case 'ㅟ': dy = 1; break;
                 case 'ㅠ': dy = 2; break;
-                case 'ㅘ': dx = 1; dy = -1; break;
+                case 'ㅘ': case 'ㅙ': dx = 1; dy = -1; break;
                 case 'ㅝ': dx = -1; dy = 1; break;
             }
             tempPos.x = Math.max(0, Math.min(this.gridSize - 1, tempPos.x + dx));
@@ -290,7 +367,7 @@ class GameEngine {
     }
 
     showMessage(msg) {
-        this.messageEl.textContent = msg;
+        if (this.messageEl) this.messageEl.textContent = msg;
     }
 
     async processWord() {
@@ -332,13 +409,18 @@ class GameEngine {
             this.render();
 
             if (this.playerPos.x === this.targetPos.x && this.playerPos.y === this.targetPos.y) {
-                this.showMessage("🎉 성공! 다음 문제로 넘어갑니다...");
-                this.isMoving = false;
+                if (this.wordIndex === this.currentWord.length - 1) {
+                    this.showMessage("🎉 성공! 다음 문제로 넘어갑니다...");
+                    this.isMoving = false;
 
-                // Wait and start new level
-                await new Promise(r => setTimeout(r, 1500));
-                this.startNewLevel();
-                return;
+                    // Wait and start new level
+                    await new Promise(r => setTimeout(r, 1500));
+                    this.startNewLevel();
+                    return;
+                } else {
+                    this.showMessage("단어의 모든 블록을 사용해야합니다.");
+                    await new Promise(r => setTimeout(r, 1000));
+                }
             }
 
             // Move to next letter in word
@@ -408,16 +490,16 @@ class GameEngine {
 
         switch (vowel) {
             case 'ㅏ': case 'ㅐ': dx = 1; break;
-            case 'ㅑ': dx = 2; break;
+            case 'ㅑ': case 'ㅒ': dx = 2; break;
             case 'ㅓ': case 'ㅔ': dx = -1; break;
-            case 'ㅕ': dx = -2; break;
+            case 'ㅕ': case 'ㅖ': dx = -2; break;
             case 'ㅗ': case 'ㅚ': dy = -1; break;
             case 'ㅛ': dy = -2; break;
             case 'ㅜ': case 'ㅟ': dy = 1; break;
             case 'ㅠ': dy = 2; break;
-            case 'ㅘ': dx = 1; dy = -1; break;
+            case 'ㅘ': case 'ㅙ': dx = 1; dy = -1; break;
             case 'ㅝ': dx = -1; dy = 1; break;
-            default: break; // ㅡ, ㅣ 등은 이동 안함
+            default: break; // ㅡ, ㅣ, ㅢ 등은 이동 안함
         }
 
         if (dx !== 0 || dy !== 0) {
