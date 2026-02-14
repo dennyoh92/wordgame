@@ -18,47 +18,119 @@
         }
 
         @media (max-width: 480px) {
+            :root {
+                --cell-size: clamp(45px, 16vw, 70px);
+            }
+
+            body {
+                padding: 5px;
+            }
+
             #game-container {
-                padding: 15px;
+                padding: 12px;
                 border-radius: 16px;
             }
 
             header h1 {
-                font-size: 2rem;
+                font-size: 1.6rem;
+            }
+
+            header p {
+                font-size: 0.8rem;
+                margin-bottom: 12px;
+            }
+
+            #grid-container {
+                margin-bottom: 15px;
+            }
+
+            #game-grid {
+                gap: 6px;
+                padding: 8px;
             }
 
             .cell {
-                font-size: 1.2rem;
+                font-size: 1.1rem;
+                border-radius: 6px;
             }
 
             .input-group {
-                flex-direction: column;
                 gap: 5px;
             }
 
-            .secondary-btn,
-            #start-btn {
-                width: 100%;
+            #word-input {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+
+            #start-btn,
+            .secondary-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+                min-height: 42px;
+                border-radius: 10px;
             }
 
             #active-word-display {
                 gap: 5px;
             }
-        }
-
-        @media (max-width: 380px) {
-            #game-grid {
-                gap: 6px;
-                padding: 6px;
-            }
-
-            .cell {
-                border-radius: 6px;
-            }
 
             .letter-block {
                 padding: 4px 8px;
                 font-size: 1rem;
+            }
+
+            #action-panel {
+                min-width: 200px;
+                padding: 10px;
+            }
+
+            #guide-panel {
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+
+            #guide-panel div[style*="grid"] {
+                grid-template-columns: 1fr 1fr;
+                gap: 3px;
+                font-size: 0.7rem;
+            }
+
+            #message-display {
+                font-size: 0.8rem;
+            }
+
+            #login-section input {
+                padding: 10px 12px !important;
+                font-size: 0.9rem !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            :root {
+                --cell-size: clamp(40px, 15vw, 55px);
+            }
+
+            header h1 {
+                font-size: 1.3rem;
+            }
+
+            #game-grid {
+                gap: 4px;
+                padding: 6px;
+            }
+
+            .cell {
+                font-size: 0.95rem;
+            }
+
+            .letter-block {
+                padding: 3px 6px;
+                font-size: 0.9rem;
+            }
+
+            #guide-panel div[style*="grid"] {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -116,6 +188,7 @@
             justify-content: center;
             margin-bottom: 25px;
             position: relative;
+            overflow: hidden;
         }
 
         #game-grid {
@@ -290,6 +363,8 @@
             color: var(--secondary-color);
             font-weight: bold;
             min-height: 1.2em;
+            word-break: keep-all;
+            overflow-wrap: break-word;
         }
 
         #active-word-display {
@@ -321,6 +396,8 @@
             color: #94a3b8;
             min-height: 1.5em;
             margin-bottom: 10px;
+            word-break: keep-all;
+            overflow-wrap: break-word;
         }
 
         #guide-panel {
@@ -329,6 +406,8 @@
             padding: 15px;
             border-radius: 16px;
             font-size: 0.85rem;
+            word-break: keep-all;
+            overflow-wrap: break-word;
         }
 
         #guide-panel h3 {
@@ -600,7 +679,7 @@
                     <div>ㅠ : 아래쪽 2칸 (⇊)</div>
                     <div>ㅘ, ㅙ : 우측 상단 (↗)</div>
                     <div>ㅝ, ㅞ : 좌측 하단 (↙)</div>
-                    <div>ㅡ, ㅣ, ㅢ : 이동하지 않음 (X)</div>
+                    <div style="grid-column: 1 / -1;">ㅡ, ㅣ, ㅢ : 이동하지 않음 (X)</div>
                 </div>
             </div>
         </div>
@@ -636,7 +715,7 @@
                     <div>ㅠ : 아래쪽 2칸 (⇊)</div>
                     <div>ㅘ, ㅙ : 우측 상단 (↗)</div>
                     <div>ㅝ, ㅞ : 좌측 하단 (↙)</div>
-                    <div>ㅡ, ㅣ, ㅢ : 이동하지 않음 (X)</div>
+                    <div style="grid-column: 1 / -1;">ㅡ, ㅣ, ㅢ : 이동하지 않음 (X)</div>
                 </div>
                 <button id="guide-popup-close"
                     style="width: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: var(--bg-color); border: none; border-radius: 12px; padding: 14px; font-weight: bold; font-size: 1rem; cursor: pointer;">확인</button>
