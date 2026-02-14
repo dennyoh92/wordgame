@@ -150,9 +150,27 @@
 
         .cell.target {
             border: 2px solid var(--accent-color);
-            background: rgba(244, 114, 182, 0.1);
+            background: rgba(244, 114, 182, 0.15);
             animation: pulse 2s infinite;
-            font-size: 2rem;
+            position: relative;
+        }
+
+        .cell.target::after {
+            content: 'Finish';
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        .cell.target.player::after {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .cell.player {
@@ -161,6 +179,25 @@
             box-shadow: 0 0 20px var(--primary-color);
             transform: scale(1.1);
             z-index: 10;
+            position: relative;
+        }
+
+        .cell.start::after {
+            content: 'Start';
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .cell.start.player::after {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .cell.active {
@@ -394,10 +431,81 @@
     <div id="game-container">
         <header>
             <h1>숨바꼭질</h1>
+            <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-bottom:5px;">
+                <div id="day-level-display"
+                    style="font-size: 0.85rem; color: var(--secondary-color); font-weight: bold;"></div>
+                <div id="live-timer"
+                    style="font-size: 0.85rem; color: var(--accent-color); font-weight: bold; font-variant-numeric: tabular-nums;">
+                </div>
+            </div>
             <p>단어의 힘으로 공간을 도약하세요.</p>
         </header>
 
+        <div id="login-overlay"
+            style="position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-color); border-radius: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; padding: 20px;">
+            <div style="margin-bottom: 30px;">
+                <h2 style="font-size: 1.8rem; margin-bottom: 10px; color: var(--primary-color);">입장 준비</h2>
+                <p style="color: #94a3b8; font-size: 0.9rem;">당신의 이름을 알려주세요.</p>
+            </div>
+            <div style="width: 100%; max-width: 250px;">
+                <input type="text" id="player-id-input" placeholder="플레이어 ID"
+                    style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--secondary-color); border-radius: 12px; padding: 15px; color: white; text-align: center; font-size: 1.2rem; margin-bottom: 15px; outline: none; box-shadow: 0 0 15px rgba(129, 140, 248, 0.2);">
+                <button id="enter-btn"
+                    style="width: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: var(--bg-color); border: none; border-radius: 12px; padding: 15px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;">입장하기</button>
+            </div>
+            <div id="login-scoreboard"
+                style="width:100%; max-width:300px; margin-top:20px; background:rgba(255,255,255,0.05); border-radius:16px; padding:16px; border:1px solid rgba(255,255,255,0.1);">
+                <div
+                    style="text-align:center; font-weight:bold; color:var(--primary-color); margin-bottom:10px; font-size:0.95rem;">
+                    🏆 오늘의 클리어 보드</div>
+                <div id="login-scoreboard-list" style="font-size:0.85rem; color:#94a3b8; text-align:center;">불러오는 중...
+                </div>
+            </div>
+        </div>
 
+        <div id="briefing-overlay"
+            style="display: none; position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-color); border-radius: 24px; flex-direction: column; justify-content: center; align-items: center; z-index: 90; padding: 24px; text-align: center;">
+            <div style="margin-bottom: 25px;">
+                <h2 id="briefing-title" style="font-size: 1.6rem; color: var(--primary-color); margin-bottom: 10px;">레벨
+                    브리핑</h2>
+                <p id="briefing-desc" style="color: #94a3b8; font-size: 0.9rem;">이 맵에 대한 정보입니다.</p>
+            </div>
+
+            <div id="briefing-constraint-info"
+                style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; width: 100%; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1);">
+                <div id="briefing-constraint-label"
+                    style="font-size: 1.2rem; font-weight: bold; color: var(--accent-color);">일반 문제</div>
+                <div id="briefing-constraint-desc" style="font-size: 0.85rem; color: #94a3b8; margin-top: 8px;">자유롭게 단어를
+                    입력하세요.</div>
+            </div>
+
+            <button id="start-challenge-btn"
+                style="width: 100%; max-width: 200px; background: var(--primary-color); color: var(--bg-color); border: none; border-radius: 12px; padding: 15px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s;">도전
+                시작</button>
+        </div>
+
+        <div id="clear-board-overlay"
+            style="display: none; position: absolute; top:0; left:0; width: 100%; height: 100%; background: var(--bg-color); border-radius: 24px; flex-direction: column; justify-content: center; align-items: center; z-index: 95; padding: 24px; text-align: center; overflow-y: auto;">
+            <div style="margin-bottom: 15px;">
+                <h2 style="font-size: 1.6rem; color: var(--primary-color); margin-bottom: 8px;">🏆 오늘의 클리어 보드</h2>
+                <p id="clear-board-date" style="color: #94a3b8; font-size: 0.85rem;"></p>
+            </div>
+            <div id="clear-board-my-time"
+                style="background: rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; width: 100%; margin-bottom: 15px; border: 1px solid rgba(99,102,241,0.3);">
+                <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;">내 클리어 시간</div>
+                <div id="clear-board-my-time-value"
+                    style="font-size: 2rem; font-weight: bold; color: var(--accent-color);">-</div>
+            </div>
+            <div
+                style="background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px; width: 100%; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; font-weight: bold;">🏅 클리어 기록</div>
+                <div id="clear-board-list"
+                    style="font-size: 0.9rem; color: var(--text-color); display: flex; flex-direction: column; gap: 6px;">
+                </div>
+            </div>
+            <button id="clear-board-close-btn"
+                style="width: 100%; max-width: 200px; background: rgba(255,255,255,0.1); color: var(--text-color); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px; font-weight: bold; font-size: 0.95rem; cursor: pointer;">닫기</button>
+        </div>
 
         <div id="grid-container">
             <script src="dictionary.js"></script>
@@ -411,6 +519,7 @@
             <div class="input-group">
                 <input type="text" id="word-input" placeholder="단어를 입력하세요" maxlength="10">
                 <button id="start-btn">게임<br>시작</button>
+
                 <button id="hint-btn" class="secondary-btn">정답<br>보기</button>
             </div>
 
@@ -419,10 +528,12 @@
                 </h3>
                 <div style="display: flex; gap: 8px; justify-content: center; width: 100%;">
                     <button id="btn-warp" class="action-btn" style="flex: 1; padding: 10px 5px; font-size: 0.9rem;">자음
-                        워프 (Warp)</button>
+                        이동</button>
                     <button id="btn-move" class="action-btn" style="flex: 1; padding: 10px 5px; font-size: 0.9rem;">모음
-                        이동 (Move)</button>
+                        이동</button>
                 </div>
+                <button id="btn-close-action" class="secondary-btn"
+                    style="margin-top: 5px; height: 36px; padding: 0 10px; font-size: 0.8rem; border-color: rgba(255,255,255,0.2);">닫기</button>
             </div>
             <div id="active-word-display"></div>
             <div id="message-display">격자 위의 자음을 보고 단어를 입력하세요.</div>
@@ -432,7 +543,11 @@
                 <h3>조작 가이드</h3>
                 <div
                     style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
-                    <strong>자음 워프:</strong> 초성 ↔ 종성 위치를 번갈아 이동 (받침 필수)
+                    <strong>자음 이동:</strong> 초성 ↔ 종성 위치로 이동
+                </div>
+                <div
+                    style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
+                    <strong>모음 이동:</strong> 모음 모양에 따라 해당 방향으로 이동
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.75rem;">
                     <div>ㅏ, ㅐ : 오른쪽 1칸 (→)</div>
@@ -458,10 +573,25 @@
              * Core Logic and Engine
              */
 
-            const CONSONANTS = ['ㄱ', 'ㄴ', 'ㄷ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅅ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-            const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-            const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
-            const JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+            // Standardizing Hangeul Jamo to Compatibility Range (U+3131 - U+314E) using explicit Unicode escapes
+            // This ensures identical representation across all platforms and editors.
+            const CHO = [
+                '\u3131', '\u3132', '\u3134', '\u3137', '\u3138', '\u3139', '\u3141', '\u3142', '\u3143', '\u3145',
+                '\u3146', '\u3147', '\u3148', '\u3149', '\u314A', '\u314B', '\u314C', '\u314D', '\u314E'
+            ];
+            const JUNG = [
+                '\u314F', '\u3150', '\u3151', '\u3152', '\u3153', '\u3154', '\u3155', '\u3156', '\u3157', '\u3158',
+                '\u3159', '\u315A', '\u315B', '\u315C', '\u315D', '\u315E', '\u315F', '\u3160', '\u3161', '\u3162', '\u3163'
+            ];
+            const JONG = [
+                '', '\u3131', '\u3132', '\u3133', '\u3134', '\u3135', '\u3136', '\u3137', '\u3139', '\u313A',
+                '\u313B', '\u313C', '\u313D', '\u313E', '\u313F', '\u3140', '\u3141', '\u3142', '\u3144', '\u3145',
+                '\u3146', '\u3147', '\u3148', '\u314A', '\u314B', '\u314C', '\u314D', '\u314E'
+            ];
+            const CONSONANTS = [
+                '\u3131', '\u3134', '\u3137', '\u3139', '\u3141', '\u3142',
+                '\u3145', '\u3147', '\u3148', '\u314A', '\u314B', '\u314C', '\u314D', '\u314E'
+            ];
 
             const DICTIONARY = [
                 '물살', '북쪽', '학기', '과학', '물학', '수박', '학교', '바다', '축구', '사자', '기차', '하늘', '포도', '모자', '나무', '나비', '우유', '아이', '오이',
@@ -469,6 +599,25 @@
                 '사과', '참외', '딸기', '수박', '포도', '귤', '오렌지', '바나나', '망고', '레몬', '라임', '키위', '자두', '복숭아', '앵두', '보리', '벼',
                 '한국', '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'
             ];
+
+            class SeededRandom {
+                constructor(seed) {
+                    this.state = seed || Math.floor(Math.random() * 2147483647);
+                }
+                // Mulberry32
+                next() {
+                    this.state |= 0; this.state = this.state + 0x6D2B79F5 | 0;
+                    var t = Math.imul(this.state ^ this.state >>> 15, 1 | this.state);
+                    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+                }
+                nextBetween(min, max) {
+                    return Math.floor(this.next() * (max - min)) + min;
+                }
+                pick(array) {
+                    return array[this.nextBetween(0, array.length)];
+                }
+            }
 
             class HangeulParser {
                 static decompose(syllable) {
@@ -495,10 +644,20 @@
                     this.targetPos = { x: 4, y: 4 };
                     this.startPos = { x: 0, y: 0 }; // Track start for reset
 
+                    this.playerId = "";
                     this.currentWord = "";
                     this.letterStates = []; // { char, status: 'unused'|'used', index }
                     this.selectedBlockIndex = -1;
-                    this.wordLengthLimit = null; // null or 3
+                    this.levelType = 'normal_full';
+                    this.minWordLength = 2;
+
+                    this.currentLevelIndex = 0;
+                    this.maxLevelsPerDay = 4;
+                    this.rng = null;
+                    this.startTime = null; // Added startTime
+
+                    // Google Sheets Backend URL (Paste your Web App URL here)
+                    this.scriptUrl = "https://script.google.com/macros/s/AKfycbw41O62trdGhB8Zv2vg0ah2QNQmhhPUx8_q639DM1vXfxOQ2-Kh1Oxxtc0CHzpD0VbB/exec";
 
                     this.isInputLocked = false;
                     this.isWarping = false; // Waiting for target click
@@ -506,14 +665,53 @@
                     this.externalDictionary = new Set();
                     this.isDictLoaded = false;
 
+                    this.overallStartTime = null; // Total time across all levels
+
                     this.init();
+                }
+
+                async sendClearTimeToSheet(totalTime) {
+                    if (!this.scriptUrl) return;
+
+                    const payload = {
+                        action: 'clearBoard',
+                        dateId: this.getDailySeed().toString(),
+                        playerId: this.playerId || "Anonymous",
+                        totalTime: totalTime
+                    };
+
+                    try {
+                        await fetch(this.scriptUrl, {
+                            method: "POST",
+                            mode: "no-cors",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
+                    } catch (e) {
+                        console.error("Failed to send clear time.", e);
+                    }
+                }
+
+                async fetchClearBoard() {
+                    if (!this.scriptUrl) return null;
+
+                    const dateId = this.getDailySeed();
+                    const url = `${this.scriptUrl}?action=clearBoard&dateId=${dateId}`;
+
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) return null;
+                        return await response.json();
+                    } catch (e) {
+                        console.error("Failed to fetch clear board.", e);
+                        return null;
+                    }
                 }
 
                 init() {
                     this.setupDOM();
                     this.loadDictionary();
-                    this.generateSolvableLevel();
-                    this.render();
+                    this.initGame();
                 }
 
                 async loadDictionary() {
@@ -539,9 +737,6 @@
                         } catch (e) {
                             console.warn("Failed to load dictionary.", e);
                             this.showMessage("사전 로드 실패. 올바른 단어 확인이 불가능합니다.");
-                            // Allow start anyway? Or block?
-                            // Let's allow start but keep isDictLoaded false so we know checking is disabled?
-                            // User wants VALIDATION. If missing, we should probably warn strongly.
                             document.getElementById('start-btn').innerHTML = "사전 없이<br>시작";
                             document.getElementById('start-btn').disabled = false;
                         }
@@ -549,18 +744,9 @@
                 }
 
                 isValidWord(word) {
-                    // 1. If external dict loaded, check it
                     if (this.isDictLoaded) {
                         return this.externalDictionary.has(word);
                     }
-                    // 2. Fallback to basic dictionary (optional, or just allow all if dict missing?)
-                    // For now, let's just warn if dict missing but still use internal for recommendation
-                    // If user specifically requested strict validation, we might want to be strict.
-                    // But without the file, game becomes unplayable if strict.
-                    // So: If dict NOT loaded, allow any >=2 inputs? Or basic dict?
-                    // User requirement: "input actual words".
-                    // If dict is missing, we can't truly validate.
-                    // Let's fallback to internal DICTIONARY for minimal check, or allow all with warning.
                     return true;
                 }
 
@@ -569,18 +755,25 @@
                     let attempts = 0;
                     let bestLevel = null;
 
-                    // 50% chance to set 3-letter limit
-                    this.wordLengthLimit = Math.random() < 0.5 ? 3 : null;
-
-                    while (attempts < 500) {
+                    while (attempts < 800) {
                         attempts++;
-                        const word = DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
-                        if (this.wordLengthLimit && word.length > this.wordLengthLimit) continue;
+                        const word = this.rng.pick(DICTIONARY);
+
+                        // Level-type specific word filters
+                        if (this.levelType === 'long_word' && word.length < 3) continue;
+                        if (this.levelType === 'consonant_only') {
+                            let hasJong = false;
+                            for (const char of word) {
+                                const d = HangeulParser.decompose(char);
+                                if (d && d.jong) { hasJong = true; break; }
+                            }
+                            if (!hasJong) continue;
+                        }
 
                         const tempGrid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill(""));
                         let currentPos = {
-                            x: Math.floor(Math.random() * this.gridSize),
-                            y: Math.floor(Math.random() * this.gridSize)
+                            x: this.rng.nextBetween(0, this.gridSize),
+                            y: this.rng.nextBetween(0, this.gridSize)
                         };
                         const playerStart = { ...currentPos };
                         const pathPositions = [];
@@ -591,9 +784,6 @@
                             const decomposed = HangeulParser.decompose(char);
                             if (!decomposed) { possible = false; break; }
 
-                            // 1. Current position must accommodate the start of the syllable (cho or jong)
-                            // If we just entered this step from a vowel move, we need to place the starting consonant.
-                            // If it's a 'jong' word, we can start with 'cho'.
                             const startConsonant = decomposed.cho;
                             if (tempGrid[currentPos.y][currentPos.x] !== "" && tempGrid[currentPos.y][currentPos.x] !== startConsonant) {
                                 possible = false; break;
@@ -601,15 +791,13 @@
                             tempGrid[currentPos.y][currentPos.x] = startConsonant;
                             pathPositions.push({ ...currentPos });
 
-                            // 2. Handle Warp (if jong exists)
-                            if (decomposed.jong) {
-                                // We need to jump to a cell with decomposed.jong
-                                // Pick a random cell that isn't the current one
+                            // Consonant Warp (skip for vowel_only)
+                            if (decomposed.jong && this.levelType !== 'vowel_only') {
                                 let jumpX, jumpY;
                                 let jumpAttempts = 0;
                                 do {
-                                    jumpX = Math.floor(Math.random() * this.gridSize);
-                                    jumpY = Math.floor(Math.random() * this.gridSize);
+                                    jumpX = this.rng.nextBetween(0, this.gridSize);
+                                    jumpY = this.rng.nextBetween(0, this.gridSize);
                                     jumpAttempts++;
                                 } while ((jumpX === currentPos.x && jumpY === currentPos.y) && jumpAttempts < 20);
 
@@ -621,56 +809,59 @@
                                 pathPositions.push({ ...currentPos });
                             }
 
-                            // 3. Handle Vowel Move
-                            let dx = 0, dy = 0;
-                            const vowel = decomposed.jung;
-                            switch (vowel) {
-                                case 'ㅏ': case 'ㅐ': dx = 1; break;
-                                case 'ㅑ': case 'ㅒ': dx = 2; break;
-                                case 'ㅓ': case 'ㅔ': dx = -1; break;
-                                case 'ㅕ': case 'ㅖ': dx = -2; break;
-                                case 'ㅗ': case 'ㅚ': dy = -1; break;
-                                case 'ㅛ': dy = -2; break;
-                                case 'ㅜ': case 'ㅟ': dy = 1; break;
-                                case 'ㅠ': dy = 2; break;
-                                case 'ㅘ': case 'ㅙ': dx = 1; dy = -1; break;
-                                case 'ㅝ': dx = -1; dy = 1; break;
-                            }
-                            const nextX = currentPos.x + dx;
-                            const nextY = currentPos.y + dy;
+                            // Vowel Move (skip for consonant_only)
+                            if (this.levelType !== 'consonant_only') {
+                                let dx = 0, dy = 0;
+                                const vowel = decomposed.jung;
+                                switch (vowel) {
+                                    case 'ㅏ': case 'ㅐ': dx = 1; break;
+                                    case 'ㅑ': case 'ㅒ': dx = 2; break;
+                                    case 'ㅓ': case 'ㅔ': dx = -1; break;
+                                    case 'ㅕ': case 'ㅖ': dx = -2; break;
+                                    case 'ㅗ': case 'ㅚ': dy = -1; break;
+                                    case 'ㅛ': dy = -2; break;
+                                    case 'ㅜ': case 'ㅟ': dy = 1; break;
+                                    case 'ㅠ': dy = 2; break;
+                                    case 'ㅘ': case 'ㅙ': dx = 1; dy = -1; break;
+                                    case 'ㅝ': dx = -1; dy = 1; break;
+                                }
+                                const nextX = currentPos.x + dx;
+                                const nextY = currentPos.y + dy;
 
-                            if (nextX < 0 || nextX >= this.gridSize || nextY < 0 || nextY >= this.gridSize) {
-                                possible = false; break;
+                                if (nextX < 0 || nextX >= this.gridSize || nextY < 0 || nextY >= this.gridSize) {
+                                    possible = false; break;
+                                }
+                                currentPos = { x: nextX, y: nextY };
                             }
-
-                            currentPos = { x: nextX, y: nextY };
-                            // Note: the next consonant will be placed in the next iteration's step 1.
                         }
 
                         if (possible) {
-                            // Ensure the final target position is reachable and set as target
                             const target = { ...currentPos };
-                            // Optional: Ensure distance between start and target
                             const manhattan = Math.abs(playerStart.x - target.x) + Math.abs(playerStart.y - target.y);
                             if (manhattan >= 2) {
-                                // Success! Fill the rest of the grid
+                                // For no_adjacent: ensure path doesn't go through target-adjacent cells
+                                if (this.levelType === 'no_adjacent') {
+                                    const adjSet = new Set();
+                                    [[0, 1], [0, -1], [1, 0], [-1, 0]].forEach(([dx, dy]) => {
+                                        adjSet.add(`${target.x + dx},${target.y + dy}`);
+                                    });
+                                    if (pathPositions.some(p => adjSet.has(`${p.x},${p.y}`))) continue;
+                                }
+
+                                // Fill empty cells with random consonants
                                 for (let y = 0; y < this.gridSize; y++) {
                                     for (let x = 0; x < this.gridSize; x++) {
                                         if (tempGrid[y][x] === "") {
-                                            tempGrid[y][x] = CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
+                                            tempGrid[y][x] = CONSONANTS[this.rng.nextBetween(0, CONSONANTS.length)];
                                         }
                                     }
                                 }
-                                // Ensure target cell is empty of consonants as per game logic?
-                                // Actually, in construction, the target cell is where we land AFTER the last vowel move.
-                                // The player wins if they are ON targetPos.
 
                                 bestLevel = {
                                     grid: tempGrid,
                                     playerPos: playerStart,
                                     targetPos: target,
-                                    path: pathPositions,
-                                    limit: this.wordLengthLimit
+                                    path: pathPositions
                                 };
                                 break;
                             }
@@ -681,20 +872,18 @@
                         this.grid = bestLevel.grid;
                         this.playerPos = bestLevel.playerPos;
                         this.targetPos = bestLevel.targetPos;
-                        this.wordLengthLimit = bestLevel.limit;
-                        // No need to prune if we constructed it correctly, but we can if we want "cleanliness"
-                        // this.pruneGrid(bestLevel.path); 
 
-                        if (this.wordLengthLimit) {
-                            this.showMessage(`3글자 제한 라운드!`);
+                        // Apply pruning only for no_adjacent
+                        if (this.levelType === 'no_adjacent') {
+                            this.pruneGrid(bestLevel.path);
                         }
+
                         const endTime = performance.now();
-                        console.log(`Level generated in ${attempts} attempts (${(endTime - startTime).toFixed(2)}ms)`);
+                        console.log(`Level [${this.levelType}] generated in ${attempts} attempts (${(endTime - startTime).toFixed(2)}ms)`);
                     } else {
-                        // Truly extreme case, fallback to random and hope for the best
-                        this.randomizePoints();
-                        this.createGrid();
-                        console.warn("Construction failed, fallback to random.");
+                        this.randomizePointsSeeded();
+                        this.createGridSeeded();
+                        console.warn("Construction failed, fallback to random seeded.");
                     }
                 }
 
@@ -703,20 +892,17 @@
                     let penalty = 0;
                     path.forEach(pos => {
                         const dist = Math.abs(pos.x - this.targetPos.x) + Math.abs(pos.y - this.targetPos.y);
-                        if (dist === 1) penalty += 10; // High penalty for using cell adjacent to target
+                        if (dist === 1) penalty += 10;
                     });
                     return penalty;
                 }
 
                 pruneGrid(path) {
                     if (!path) return;
-
                     const used = new Set(path.map(p => `${p.x},${p.y}`));
-
-                    // 1. Force remove all target adjacents if they are NOT in path
                     for (let dy = -1; dy <= 1; dy++) {
                         for (let dx = -1; dx <= 1; dx++) {
-                            if (Math.abs(dx) + Math.abs(dy) !== 1) continue; // Only orthogonal
+                            if (Math.abs(dx) + Math.abs(dy) !== 1) continue;
                             const nx = this.targetPos.x + dx;
                             const ny = this.targetPos.y + dy;
                             if (nx >= 0 && nx < this.gridSize && ny >= 0 && ny < this.gridSize) {
@@ -726,8 +912,6 @@
                             }
                         }
                     }
-
-                    // 2. Continue pruning other cells, prioritizing those farthest from the target
                     const candidates = [];
                     for (let y = 0; y < this.gridSize; y++) {
                         for (let x = 0; x < this.gridSize; x++) {
@@ -737,18 +921,13 @@
                             }
                         }
                     }
-
-                    // Sort by distance from targetPos (farther first)
                     candidates.sort((a, b) => {
                         const distA = Math.abs(a.x - this.targetPos.x) + Math.abs(a.y - this.targetPos.y);
                         const distB = Math.abs(b.x - this.targetPos.x) + Math.abs(b.y - this.targetPos.y);
-                        return distB - distA; // Descending distance
+                        return distB - distA;
                     });
-
-                    // Aim for about 50-60% empty grid total? Or just keep removing up to a limit
-                    const alreadyRemoved = this.grid.flat().filter(c => c === "").length - 1; // -1 for target
+                    const alreadyRemoved = this.grid.flat().filter(c => c === "").length - 1;
                     const maxToRemove = 15 - alreadyRemoved;
-
                     if (maxToRemove > 0) {
                         const extraRemove = candidates.slice(0, maxToRemove);
                         extraRemove.forEach(pos => {
@@ -757,30 +936,91 @@
                     }
                 }
 
-                randomizePoints() {
-                    // Randomize start and target with at least 3 distance (Manhattan)
+                getDailySeed() {
+                    const now = new Date();
+                    const y = now.getFullYear();
+                    const m = String(now.getMonth() + 1).padStart(2, '0');
+                    const d = String(now.getDate()).padStart(2, '0');
+                    return parseInt(`${y}${m}${d}`);
+                }
+
+                determineLevelType() {
+                    const allCases = ['consonant_only', 'vowel_only', 'no_adjacent', 'normal'];
+                    if (this.currentLevelIndex === 0) {
+                        this.levelType = 'normal_full';
+                        this.minWordLength = 2;
+                    } else if (this.currentLevelIndex === 1 || this.currentLevelIndex === 2) {
+                        if (this.currentLevelIndex === 1) {
+                            this.levelType = this.rng.pick(allCases);
+                        } else {
+                            // Re-derive level 2's type to avoid same type
+                            const level2Rng = new SeededRandom(this.getDailySeed() + 1);
+                            const level2Type = level2Rng.pick(allCases);
+                            const remaining = allCases.filter(t => t !== level2Type);
+                            this.levelType = this.rng.pick(remaining);
+                        }
+                        this.minWordLength = 2;
+                    } else {
+                        this.levelType = 'long_word';
+                        this.minWordLength = 3;
+                    }
+                }
+
+                updateConstraintBadge() {
+                    const badge = this.constraintBadge;
+                    badge.style.display = 'none';
+                    return; // Disable badge display
+                    switch (this.levelType) {
+                        case 'normal_full':
+                        case 'normal':
+                            badge.style.display = 'none';
+                            this.showMessage("격자 위의 자음을 보고 단어를 입력하세요.");
+                            break;
+                        case 'consonant_only':
+                            badge.textContent = '워프만 가능';
+                            badge.style.background = '#8b5cf6';
+                            this.showMessage("자음 워프만 사용 가능합니다! 모음 이동은 비활성화됩니다.");
+                            break;
+                        case 'vowel_only':
+                            badge.textContent = '이동만 가능';
+                            badge.style.background = '#f59e0b';
+                            this.showMessage("모음 이동만 사용 가능합니다! 자음 워프는 비활성화됩니다.");
+                            break;
+                        case 'no_adjacent':
+                            badge.textContent = '목표 인접 빈칸';
+                            badge.style.background = '#ef4444';
+                            this.showMessage("빈칸들이 나타납니다!");
+                            break;
+                        case 'long_word':
+                            badge.textContent = '3글자 이상';
+                            badge.style.background = '#ef4444';
+                            this.showMessage("3글자 이상 단어로 목표에 도달하세요!");
+                            break;
+                    }
+                }
+
+                randomizePointsSeeded() {
                     do {
                         this.playerPos = {
-                            x: Math.floor(Math.random() * this.gridSize),
-                            y: Math.floor(Math.random() * this.gridSize)
+                            x: this.rng.nextBetween(0, this.gridSize),
+                            y: this.rng.nextBetween(0, this.gridSize)
                         };
                         this.targetPos = {
-                            x: Math.floor(Math.random() * this.gridSize),
-                            y: Math.floor(Math.random() * this.gridSize)
+                            x: this.rng.nextBetween(0, this.gridSize),
+                            y: this.rng.nextBetween(0, this.gridSize)
                         };
                     } while (Math.abs(this.playerPos.x - this.targetPos.x) + Math.abs(this.playerPos.y - this.targetPos.y) < 3);
                 }
 
-                createGrid() {
+                createGridSeeded() {
                     this.grid = [];
                     for (let y = 0; y < this.gridSize; y++) {
                         const row = [];
                         for (let x = 0; x < this.gridSize; x++) {
-                            // Target cell has no consonant
                             if (x === this.targetPos.x && y === this.targetPos.y) {
                                 row.push("");
                             } else {
-                                const randomConsonant = CONSONANTS[Math.floor(Math.random() * CONSONANTS.length)];
+                                const randomConsonant = CONSONANTS[this.rng.nextBetween(0, CONSONANTS.length)];
                                 row.push(randomConsonant);
                             }
                         }
@@ -792,11 +1032,81 @@
                     this.gridEl = document.getElementById('game-grid');
                     this.inputEl = document.getElementById('word-input');
                     this.startBtn = document.getElementById('start-btn');
+
                     this.messageEl = document.getElementById('message-display');
                     this.wordDisplayEl = document.getElementById('active-word-display');
+                    this.dayLevelDisplayEl = document.getElementById('day-level-display');
+                    this.liveTimerEl = document.getElementById('live-timer');
+                    this.timerInterval = null;
 
                     this.hintBtn = document.getElementById('hint-btn');
                     this.hintDisplayEl = document.getElementById('hint-display');
+                    this.hintInterval = null;
+
+                    // Briefing Elements
+                    this.briefingOverlay = document.getElementById('briefing-overlay');
+                    this.briefingTitle = document.getElementById('briefing-title');
+                    this.briefingConstraintLabel = document.getElementById('briefing-constraint-label');
+                    this.briefingConstraintDesc = document.getElementById('briefing-constraint-desc');
+                    this.startChallengeBtn = document.getElementById('start-challenge-btn');
+
+                    // Clear Board Elements
+                    this.clearBoardOverlay = document.getElementById('clear-board-overlay');
+                    this.clearBoardDate = document.getElementById('clear-board-date');
+                    this.clearBoardMyTime = document.getElementById('clear-board-my-time-value');
+                    this.clearBoardList = document.getElementById('clear-board-list');
+                    document.getElementById('clear-board-close-btn').onclick = () => {
+                        this.clearBoardOverlay.style.display = 'none';
+                    };
+
+                    this.startChallengeBtn.onclick = () => {
+                        this.briefingOverlay.style.display = 'none';
+                        this.startTime = Date.now();
+                        if (this.currentLevelIndex === 0) {
+                            this.overallStartTime = Date.now();
+                        }
+                    };
+
+
+
+                    // Login/ID Elements
+                    this.loginOverlay = document.getElementById('login-overlay');
+                    this.playerIdInput = document.getElementById('player-id-input');
+                    this.enterBtn = document.getElementById('enter-btn');
+
+                    // Fetch and display today's scoreboard on login screen
+                    this.loadLoginScoreboard();
+
+                    this.enterBtn.onclick = () => {
+                        const id = this.playerIdInput.value.trim();
+                        if (id) {
+                            this.playerId = id;
+                            this.loginOverlay.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                            this.loginOverlay.style.opacity = '0';
+                            this.loginOverlay.style.transform = 'scale(1.1)';
+                            setTimeout(() => {
+                                this.loginOverlay.style.display = 'none';
+                                this.showMessage(`${this.playerId}님, 반갑습니다! 모험을 시작하세요.`);
+                            }, 500);
+                        } else {
+                            this.playerIdInput.style.animation = 'shake 0.5s';
+                            setTimeout(() => this.playerIdInput.style.animation = '', 500);
+                        }
+                    };
+
+                    // Add shake animation style dynamically if not present
+                    if (!document.getElementById('shake-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'shake-style';
+                        style.textContent = `
+                            @keyframes shake {
+                                0%, 100% { transform: translateX(0); }
+                                25% { transform: translateX(-5px); }
+                                75% { transform: translateX(5px); }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                    }
 
                     // Action Panel
                     this.actionPanel = document.getElementById('action-panel');
@@ -811,8 +1121,6 @@
                         if (e.key === 'Enter') this.handleStart();
                     };
 
-
-
                     // Grid Click
                     this.gridEl.onclick = (e) => {
                         const cell = e.target.closest('.cell');
@@ -826,14 +1134,120 @@
                             // Check if valid target
                             if (cell.classList.contains('active')) {
                                 this.resolveWarp({ x, y });
+                            } else {
+                                // Cancel warping if clicked elsewhere
+                                this.isWarping = false;
+                                this.clearHighlights();
+                                this.showMessage("워프가 취소되었습니다. 다시 선택하세요.");
+                                this.selectBlock(this.selectedBlockIndex);
                             }
                         }
                     };
 
-                    // Action Buttons
                     this.btnWarp.onclick = () => this.initiateWarp();
                     this.btnMove.onclick = () => this.initiateMove();
+                    document.getElementById('btn-close-action').onclick = () => this.hideActionPanel();
                 }
+
+                async showBriefing() {
+                    this.briefingTitle.textContent = `레벨 ${this.currentLevelIndex + 1} / ${this.maxLevelsPerDay}`;
+
+                    // Show constraint info based on level type
+                    switch (this.levelType) {
+                        case 'normal_full':
+                            this.briefingConstraintLabel.textContent = '일반 문제';
+                            this.briefingConstraintDesc.textContent = '모든 칸에 자음이 차 있습니다. 자유롭게 단어를 입력하세요.';
+                            this.briefingConstraintLabel.style.color = 'var(--accent-color)';
+                            break;
+                        case 'consonant_only':
+                            this.briefingConstraintLabel.textContent = '🟣 워프만 가능';
+                            this.briefingConstraintDesc.textContent = '자음 워프만 사용할 수 있습니다. 모음 이동은 비활성화됩니다.';
+                            this.briefingConstraintLabel.style.color = '#8b5cf6';
+                            break;
+                        case 'vowel_only':
+                            this.briefingConstraintLabel.textContent = '🟡 이동만 가능';
+                            this.briefingConstraintDesc.textContent = '모음 이동만 사용할 수 있습니다. 자음 워프는 비활성화됩니다.';
+                            this.briefingConstraintLabel.style.color = '#f59e0b';
+                            break;
+                        case 'no_adjacent':
+                            this.briefingConstraintLabel.textContent = '🔴 목표 인접 빈칸';
+                            this.briefingConstraintDesc.textContent = '빈칸들이 나타납니다.';
+                            this.briefingConstraintLabel.style.color = '#ef4444';
+                            break;
+                        case 'normal':
+                            this.briefingConstraintLabel.textContent = '일반 문제';
+                            this.briefingConstraintDesc.textContent = '자유롭게 단어를 입력하세요.';
+                            this.briefingConstraintLabel.style.color = 'var(--accent-color)';
+                            break;
+                        case 'long_word':
+                            this.briefingConstraintLabel.textContent = '🔴 3글자 이상';
+                            this.briefingConstraintDesc.textContent = '3글자 이상 단어만 사용할 수 있습니다.';
+                            this.briefingConstraintLabel.style.color = '#ef4444';
+                            break;
+                    }
+
+                    this.briefingOverlay.style.display = 'flex';
+                }
+
+                async showClearBoard(myTotalTime) {
+                    const seed = this.getDailySeed();
+                    const dayString = seed.toString().replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+                    this.clearBoardDate.textContent = dayString;
+
+                    // Show my time
+                    if (myTotalTime) {
+                        this.clearBoardMyTime.textContent = `${myTotalTime}초`;
+                    } else {
+                        this.clearBoardMyTime.textContent = '-';
+                    }
+
+                    // Fetch leaderboard
+                    this.clearBoardList.innerHTML = '<div style="color: #64748b">불러오는 중...</div>';
+                    this.clearBoardOverlay.style.display = 'flex';
+
+                    const data = await this.fetchClearBoard();
+                    this.clearBoardList.innerHTML = '';
+
+                    if (data && data.entries && data.entries.length > 0) {
+                        data.entries
+                            .sort((a, b) => a.totalTime - b.totalTime)
+                            .forEach((entry, i) => {
+                                const row = document.createElement('div');
+                                row.style.cssText = 'display:flex; justify-content:space-between; padding:4px 0;';
+                                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+                                const isMe = entry.playerId === this.playerId;
+                                row.innerHTML = `<span style="${isMe ? 'color:var(--accent-color);font-weight:bold' : ''}">${medal} ${entry.playerId}</span><span style="color: var(--secondary-color)">${entry.totalTime}초</span>`;
+                                this.clearBoardList.appendChild(row);
+                            });
+                    } else {
+                        this.clearBoardList.innerHTML = '<div style="color: #64748b; text-align:center; padding:16px;">아직 기록이 없습니다.</div>';
+                    }
+                }
+
+                async loadLoginScoreboard() {
+                    const listEl = document.getElementById('login-scoreboard-list');
+                    try {
+                        const data = await this.fetchClearBoard();
+                        listEl.innerHTML = '';
+                        if (data && data.entries && data.entries.length > 0) {
+                            data.entries
+                                .sort((a, b) => a.totalTime - b.totalTime)
+                                .forEach((entry, i) => {
+                                    const row = document.createElement('div');
+                                    row.style.cssText = 'display:flex; justify-content:space-between; padding:3px 0;';
+                                    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+                                    row.innerHTML = `<span>${medal} ${entry.playerId}</span><span style="color:var(--secondary-color)">${entry.totalTime}초</span>`;
+                                    listEl.appendChild(row);
+                                });
+                        } else {
+                            listEl.innerHTML = '아직 기록이 없습니다. 첫 번째 도전자가 되세요!';
+                        }
+                    } catch (e) {
+                        listEl.innerHTML = '기록을 불러올 수 없습니다.';
+                    }
+                }
+
+
 
                 render() {
                     this.gridEl.innerHTML = '';
@@ -843,14 +1257,15 @@
                             cell.className = 'cell';
                             cell.textContent = this.grid[y][x];
 
-                            if (x === this.playerPos.x && y === this.playerPos.y) {
-                                cell.classList.add('player');
+                            if (x === this.startPos.x && y === this.startPos.y) {
+                                cell.classList.add('start');
                             }
                             if (x === this.targetPos.x && y === this.targetPos.y) {
                                 cell.classList.add('target');
                             }
-                            // Only show start label if it's the very first render or we still care about starting pos
-                            // Let's use a one-time class if needed, but for now just player pos
+                            if (x === this.playerPos.x && y === this.playerPos.y) {
+                                cell.classList.add('player');
+                            }
 
                             this.gridEl.appendChild(cell);
                         }
@@ -861,19 +1276,14 @@
                 async handleStart() {
                     if (this.isInputLocked && this.letterStates.length > 0) return;
 
-                    const word = this.inputEl.value.trim();
+                    const word = this.inputEl.value.trim().normalize('NFC');
                     if (!word) {
                         this.showMessage("단어를 입력하세요!");
                         return;
                     }
 
-                    if (this.wordLengthLimit && word.length !== this.wordLengthLimit) {
-                        this.showMessage(`${this.wordLengthLimit}글자 단어만 가능합니다!`);
-                        return;
-                    }
-
-                    if (word.length < 2) { // This check is still relevant if wordLengthLimit is null
-                        this.showMessage("단어는 최소 2글자 이상이어야 합니다!");
+                    if (word.length < this.minWordLength) {
+                        this.showMessage(`단어는 최소 ${this.minWordLength}글자 이상이어야 합니다!`);
                         return;
                     }
 
@@ -896,11 +1306,12 @@
 
                     this.isInputLocked = true;
                     this.inputEl.disabled = true;
+                    this.inputEl.value = "";
                     this.startBtn.innerHTML = "다시<br>하기";
                     this.startBtn.onclick = () => this.resetGame();
 
                     this.renderWordBlocks();
-                    this.showMessage("격자 위의 자음과 일치하는 글자를 클릭하세요.");
+                    this.showMessage("격자 위의 자음과 일치하는 글자를 클릭하세요. '패스'를 눌러 건너뛸 수 있습니다.");
                     this.isWarping = false;
                     this.hideActionPanel();
                 }
@@ -934,24 +1345,140 @@
                     this.isWarping = false;
                 }
 
+                isSameJamo(a, b) {
+                    if (!a || !b) return false;
+                    const aN = a.normalize('NFC');
+                    const bN = b.normalize('NFC');
+                    if (aN === bN) return true;
+                    // Fallback to code comparison if normalization fails to unify
+                    return aN.charCodeAt(0) === bN.charCodeAt(0);
+                }
+
                 startNewLevel() {
                     this.initGame();
                 }
 
                 initGame() {
+                    const seed = this.getDailySeed();
+                    const dayString = seed.toString().replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+
+                    if (this.currentLevelIndex >= this.maxLevelsPerDay) {
+                        this.dayLevelDisplayEl.textContent = `Day ${dayString} - 도전 완료!`;
+                        this.showMessage("오늘의 모든 도전을 완료했습니다! 내일 다시 오세요.");
+                        this.inputEl.disabled = true;
+                        this.startBtn.disabled = true;
+                        if (this.timerInterval) clearInterval(this.timerInterval);
+                        this.liveTimerEl.textContent = '';
+                        this.showClearBoard(null); // Show clear board on revisit
+                        return;
+                    }
+
+                    // Create RNG for this level
+                    this.rng = new SeededRandom(seed + this.currentLevelIndex);
+                    this.determineLevelType();
+
+                    this.dayLevelDisplayEl.textContent = `Day ${dayString} - 레벨 ${this.currentLevelIndex + 1}/${this.maxLevelsPerDay}`;
                     this.inputEl.value = "";
                     this.wordDisplayEl.innerHTML = "";
                     this.generateSolvableLevel();
                     this.startPos = { ...this.playerPos };
                     this.render();
 
-                    if (this.wordLengthLimit) {
-                        this.constraintBadge.style.display = 'block';
-                        this.showMessage(`${this.wordLengthLimit}글자 단어로 목표에 도달하세요!`);
-                    } else {
-                        this.constraintBadge.style.display = 'none';
-                        this.showMessage("격자 위의 자음을 보고 단어를 입력하세요.");
+                    // Start timer immediately
+                    this.startTime = Date.now();
+                    if (this.currentLevelIndex === 0) {
+                        this.overallStartTime = Date.now();
                     }
+
+                    // Start live timer display
+                    if (this.timerInterval) clearInterval(this.timerInterval);
+                    this.timerInterval = setInterval(() => {
+                        if (this.overallStartTime) {
+                            const elapsed = ((Date.now() - this.overallStartTime) / 1000).toFixed(1);
+                            this.liveTimerEl.textContent = `⏱ ${elapsed}초`;
+                        }
+                    }, 100);
+
+                    // Start Hint Timer (3 minutes)
+                    if (this.hintInterval) clearInterval(this.hintInterval);
+                    this.hintBtn.disabled = true;
+                    this.hintBtn.style.opacity = '0.5';
+                    this.hintBtn.style.cursor = 'not-allowed';
+
+                    let hintTimeLeft = 180; // 3 minutes
+                    const updateHintBtn = () => {
+                        const m = Math.floor(hintTimeLeft / 60);
+                        const s = hintTimeLeft % 60;
+                        this.hintBtn.innerHTML = `정답<br>보기<br>(${m}:${s.toString().padStart(2, '0')})`;
+                    };
+                    updateHintBtn();
+
+                    this.hintInterval = setInterval(() => {
+                        hintTimeLeft--;
+                        if (hintTimeLeft <= 0) {
+                            clearInterval(this.hintInterval);
+                            this.hintBtn.disabled = false;
+                            this.hintBtn.style.opacity = '1';
+                            this.hintBtn.style.cursor = 'pointer';
+                            this.hintBtn.innerHTML = "정답<br>보기";
+                        } else {
+                            updateHintBtn();
+                        }
+                    }, 1000);
+
+                    // Show constraint info as message
+                    this.updateConstraintBadge();
+                    switch (this.levelType) {
+                        case 'normal_full': this.showMessage('격자 위의 자음을 보고 단어를 입력하세요.'); break;
+                        case 'consonant_only': this.showMessage('🟠 워프만 가능! 모음 이동은 비활성화됩니다.'); break;
+                        case 'vowel_only': this.showMessage('🟡 이동만 가능! 자음 워프는 비활성화됩니다.'); break;
+                        case 'no_adjacent': this.showMessage('🔴 빈칸들이 나타납니다.'); break;
+                        case 'normal': this.showMessage('격자 위의 자음을 보고 단어를 입력하세요.'); break;
+                        case 'long_word': this.showMessage('🔴 3글자 이상 단어만 사용 가능!'); break;
+                    }
+                }
+
+                async checkWinCondition() {
+                    if (this.playerPos.x === this.targetPos.x && this.playerPos.y === this.targetPos.y) {
+                        const allProcessed = this.letterStates.every(s => s.status === 'used' || s.status === 'warped' || s.status === 'moved');
+
+                        if (allProcessed) {
+                            this.currentLevelIndex++;
+                            if (this.currentLevelIndex < this.maxLevelsPerDay) {
+                                this.showMessage(`🎉 레벨 클리어! ${this.currentLevelIndex + 1}단계로 이동합니다...`);
+                                setTimeout(() => {
+                                    this.isInputLocked = false;
+                                    this.inputEl.disabled = false;
+                                    this.startBtn.innerHTML = "게임<br>시작";
+                                    this.initGame();
+                                }, 1500);
+                            } else {
+                                // All 4 levels cleared!
+                                if (this.timerInterval) clearInterval(this.timerInterval);
+                                if (this.hintInterval) clearInterval(this.hintInterval);
+                                const totalTime = ((Date.now() - this.overallStartTime) / 1000).toFixed(1);
+                                this.liveTimerEl.textContent = `⏱ ${totalTime}초 ✅`;
+                                this.showMessage(`🎊 오늘의 모든 도전을 완료했습니다! 총 ${totalTime}초`);
+                                this.sendClearTimeToSheet(totalTime);
+                                setTimeout(async () => {
+                                    this.initGame();
+                                    await this.showClearBoard(totalTime);
+                                }, 1500);
+                            }
+                            return true;
+                        } else {
+                            this.showMessage("단어의 모든 블록을 사용해야합니다.");
+                            return false;
+                        }
+                    }
+
+                    const allDone = this.letterStates.every(s => s.status === 'used');
+                    if (allDone) {
+                        this.resetToStartAndRetry();
+                        return false;
+                    }
+
+                    return false;
                 }
 
                 showHint() {
@@ -971,8 +1498,8 @@
                     const dict = dictSource || (this.isDictLoaded ? Array.from(this.externalDictionary) : DICTIONARY);
 
                     for (const word of dict) {
-                        if (this.wordLengthLimit && word.length !== this.wordLengthLimit) continue;
-                        if (word.length >= 2 && this.simulateWord(word)) { // Keep word.length >= 2
+                        if (word.length < this.minWordLength) continue;
+                        if (this.simulateWord(word)) {
                             results.push(word);
                         }
                     }
@@ -980,74 +1507,85 @@
                 }
 
                 simulateWord(word) {
-                    let tempPos = { x: this.playerPos.x, y: this.playerPos.y };
-                    const path = []; // Track used coordinates
+                    // Try to simulate from a given position and character index
+                    const self = this;
 
-                    for (let i = 0; i < word.length; i++) {
-                        const char = word[i];
+                    function simulate(pos, charIdx) {
+                        if (charIdx >= word.length) {
+                            // All characters processed - check if at target
+                            return (pos.x === self.targetPos.x && pos.y === self.targetPos.y) ? [] : null;
+                        }
+
+                        const char = word[charIdx];
                         const decomposed = HangeulParser.decompose(char);
                         if (!decomposed) return null;
 
-                        // Current cell used
-                        path.push({ x: tempPos.x, y: tempPos.y });
-
-                        const currentConsonant = this.grid[tempPos.y][tempPos.x];
+                        const currentConsonant = self.grid[pos.y][pos.x];
                         const canActivate = (currentConsonant === decomposed.cho || (decomposed.jong && currentConsonant === decomposed.jong));
                         if (!canActivate) return null;
 
-                        // Simulate Warp
-                        if (decomposed.jong) {
+                        // Determine warp targets
+                        let warpPositions = [{ ...pos }]; // default: no warp, stay at current pos
+
+                        if (decomposed.jong && self.levelType !== 'vowel_only') {
                             let targetConsonant = "";
                             if (currentConsonant === decomposed.cho) targetConsonant = decomposed.jong;
                             else if (currentConsonant === decomposed.jong) targetConsonant = decomposed.cho;
 
                             if (targetConsonant) {
                                 const potentialTargets = [];
-                                for (let y = 0; y < this.gridSize; y++) {
-                                    for (let x = 0; x < this.gridSize; x++) {
-                                        if (this.grid[y][x] === targetConsonant && (x !== tempPos.x || y !== tempPos.y)) {
+                                for (let y = 0; y < self.gridSize; y++) {
+                                    for (let x = 0; x < self.gridSize; x++) {
+                                        if (self.grid[y][x] === targetConsonant && (x !== pos.x || y !== pos.y)) {
                                             potentialTargets.push({ x, y });
                                         }
                                     }
                                 }
                                 if (potentialTargets.length > 0) {
-                                    // In simulation, we need to know if ANY of these paths lead to victory.
-                                    // For simplicity, let's assume the "best" jump (closest to goal).
-                                    potentialTargets.sort((a, b) => {
-                                        const distA = Math.abs(a.x - this.targetPos.x) + Math.abs(a.y - this.targetPos.y);
-                                        const distB = Math.abs(b.x - this.targetPos.x) + Math.abs(b.y - this.targetPos.y);
-                                        return distA - distB;
-                                    });
-                                    tempPos = { x: potentialTargets[0].x, y: potentialTargets[0].y };
-                                    // Warp target used
-                                    path.push({ x: tempPos.x, y: tempPos.y });
+                                    warpPositions = potentialTargets; // try all warp targets
                                 }
                             }
                         }
 
-                        // Simulate Vowel Move
-                        let dx = 0, dy = 0;
-                        const vowel = decomposed.jung;
-                        switch (vowel) {
-                            case 'ㅏ': case 'ㅐ': dx = 1; break;
-                            case 'ㅑ': case 'ㅒ': dx = 2; break;
-                            case 'ㅓ': case 'ㅔ': dx = -1; break;
-                            case 'ㅕ': case 'ㅖ': dx = -2; break;
-                            case 'ㅗ': case 'ㅚ': dy = -1; break;
-                            case 'ㅛ': dy = -2; break;
-                            case 'ㅜ': case 'ㅟ': dy = 1; break;
-                            case 'ㅠ': dy = 2; break;
-                            case 'ㅘ': case 'ㅙ': dx = 1; dy = -1; break;
-                            case 'ㅝ': dx = -1; dy = 1; break;
-                        }
-                        tempPos.x = Math.max(0, Math.min(this.gridSize - 1, tempPos.x + dx));
-                        tempPos.y = Math.max(0, Math.min(this.gridSize - 1, tempPos.y + dy));
+                        // Try each warp position
+                        for (const warpPos of warpPositions) {
+                            let nextPos = { ...warpPos };
 
-                        if (tempPos.x === this.targetPos.x && tempPos.y === this.targetPos.y) {
-                            return path;
+                            // Apply vowel move (skip for consonant_only)
+                            if (self.levelType !== 'consonant_only') {
+                                let dx = 0, dy = 0;
+                                const vowel = decomposed.jung;
+                                switch (vowel) {
+                                    case '\u314f': case '\u3150': dx = 1; break;
+                                    case '\u3151': case '\u3152': dx = 2; break;
+                                    case '\u3153': case '\u3154': dx = -1; break;
+                                    case '\u3155': case '\u3156': dx = -2; break;
+                                    case '\u3157': case '\u315a': dy = -1; break;
+                                    case '\u315b': dy = -2; break;
+                                    case '\u315c': case '\u315f': dy = 1; break;
+                                    case '\u3160': dy = 2; break;
+                                    case '\u3158': case '\u3159': dx = 1; dy = -1; break;
+                                    case '\u315d': dx = -1; dy = 1; break;
+                                }
+                                nextPos.x += dx;
+                                nextPos.y += dy;
+
+                                // Reject out-of-bounds (same as generateSolvableLevel)
+                                if (nextPos.x < 0 || nextPos.x >= self.gridSize || nextPos.y < 0 || nextPos.y >= self.gridSize) {
+                                    continue; // try next warp target
+                                }
+                            }
+
+                            // Recurse to next character
+                            const result = simulate(nextPos, charIdx + 1);
+                            if (result !== null) {
+                                return [{ ...pos }, ...result];
+                            }
                         }
+                        return null;
                     }
-                    return null;
+
+                    return simulate({ ...this.playerPos }, 0);
                 }
 
                 renderWordBlocks() {
@@ -1060,6 +1598,10 @@
 
                         block.onclick = () => {
                             if (state.status === 'used') return;
+                            if (state.status === 'moved' || state.status === 'warped') {
+                                this.selectBlock(state.index);
+                                return;
+                            }
                             this.selectBlock(state.index);
                         };
 
@@ -1068,8 +1610,11 @@
                 }
 
                 selectBlock(index) {
-                    if (this.isWarping) return; // Busy
-
+                    if (this.isWarping) {
+                        this.isWarping = false;
+                        this.clearHighlights();
+                        this.showMessage("워프가 취소되었습니다.");
+                    }
                     this.selectedBlockIndex = index;
                     this.renderWordBlocks();
 
@@ -1085,39 +1630,69 @@
                     this.actionPanel.style.display = 'flex';
 
                     // Validate Actions
-                    const currentConsonant = this.grid[this.playerPos.y][this.playerPos.x];
-                    const canActivate = (currentConsonant === dec.cho || (dec.jong && currentConsonant === dec.jong));
+                    const cellRaw = this.grid[this.playerPos.y][this.playerPos.x];
+                    const currentConsonant = cellRaw ? cellRaw.normalize('NFC') : "";
+                    const cho = dec.cho.normalize('NFC');
+                    const jong = dec.jong ? dec.jong.normalize('NFC') : null;
+
+                    console.log(`Diagnostic [selectBlock]: Cell='${currentConsonant}'(${currentConsonant.charCodeAt(0)}), Cho='${cho}'(${cho.charCodeAt(0)}), Jong=${jong ? `'${jong}'(${jong.charCodeAt(0)})` : 'null'}`);
+
+                    const canActivate = (this.isSameJamo(currentConsonant, cho) || (jong && this.isSameJamo(currentConsonant, jong)));
 
                     if (!canActivate) {
                         this.showMessage("현재 위치의 자음과 일치하지 않습니다!");
                         this.btnWarp.disabled = true;
                         this.btnMove.disabled = true;
                     } else {
-                        // If on target but not finished, show warning
-                        const allUsed = this.letterStates.every(s => s.status === 'used' || s.status === 'warped');
-                        if (this.playerPos.x === this.targetPos.x && this.playerPos.y === this.targetPos.y && !allUsed) {
-                            this.showMessage("단어의 모든 블록을 사용해야합니다.");
-                        } else {
-                            this.showMessage("행동을 선택하세요.");
-                        }
-                        // Check Warp
-                        let canWarp = false;
-                        if (dec.jong && state.status !== 'warped') {
-                            // Check if target exists
-                            let targetConsonant = "";
-                            if (currentConsonant === dec.cho) targetConsonant = dec.jong;
-                            else if (currentConsonant === dec.jong) targetConsonant = dec.cho;
+                        // Determine what actions are still available
+                        const alreadyWarped = (state.status === 'warped');
+                        const alreadyMoved = (state.status === 'moved');
 
-                            if (targetConsonant) {
-                                // Check grid for targets
-                                const targets = this.findWarpTargets(targetConsonant);
-                                if (targets.length > 0) canWarp = true;
+                        // Check Warp Possibility (skip if already warped)
+                        let canWarp = false;
+                        if (!alreadyWarped && dec.jong) {
+                            const target = (this.isSameJamo(currentConsonant, cho)) ? dec.jong : dec.cho;
+                            if (target) {
+                                const targets = this.findWarpTargets(target.normalize('NFC'));
+                                if (targets.length > 0) {
+                                    canWarp = true;
+                                }
                             }
                         }
-                        this.btnWarp.disabled = !canWarp;
 
-                        // Check Move (always possible if activatable?)
-                        this.btnMove.disabled = false;
+                        // Check Move Possibility (skip if already moved)
+                        let canMove = !alreadyMoved;
+
+                        // Level type overrides
+                        if (this.levelType === 'vowel_only') canWarp = false;
+                        if (this.levelType === 'consonant_only') canMove = !alreadyMoved; // move still finishes the letter
+
+                        // If both done, auto-finish this letter
+                        if (!canWarp && !canMove) {
+                            state.status = 'used';
+                            this.hideActionPanel();
+                            this.checkWinCondition();
+                            return;
+                        }
+
+                        this.btnWarp.disabled = !canWarp;
+                        this.btnMove.disabled = !canMove;
+
+                        // Show a "완료" (finish) button text if one action is already done
+                        if (alreadyWarped) {
+                            this.showMessage("워프 완료! 이동하거나 완료하세요.");
+                            this.btnMove.textContent = '모음\n이동';
+                        } else if (alreadyMoved) {
+                            this.showMessage(canWarp ? "이동 완료! 워프하거나 완료하세요." : "이동 완료.");
+                        } else {
+                            if (this.levelType === 'consonant_only') {
+                                this.showMessage(canWarp ? "워프 또는 건너뛰기를 선택하세요." : "워프 대상이 없습니다. '이동'으로 건너뛰세요.");
+                            } else if (this.levelType === 'vowel_only') {
+                                this.showMessage("모음 이동을 선택하세요.");
+                            } else {
+                                this.showMessage(canWarp ? "행동을 선택하세요." : "이동만 가능합니다.");
+                            }
+                        }
                     }
                 }
 
@@ -1126,65 +1701,91 @@
                     this.selectedBlockIndex = -1;
                     this.renderWordBlocks();
                 }
-
                 findWarpTargets(targetConsonant) {
                     const targets = [];
+                    const normalizedTarget = targetConsonant.normalize('NFC');
                     for (let y = 0; y < this.gridSize; y++) {
                         for (let x = 0; x < this.gridSize; x++) {
-                            if (this.grid[y][x] === targetConsonant && (x !== this.playerPos.x || y !== this.playerPos.y)) {
+                            const cellConsonant = this.grid[y][x].normalize('NFC');
+                            if (this.isSameJamo(cellConsonant, normalizedTarget) && (x !== this.playerPos.x || y !== this.playerPos.y)) {
                                 targets.push({ x, y });
                             }
                         }
                     }
+                    console.log(`Searching for Warp Target: ${normalizedTarget}(${normalizedTarget.charCodeAt(0)}), Found: ${targets.length}`);
                     return targets;
                 }
 
                 initiateWarp() {
                     const state = this.letterStates[this.selectedBlockIndex];
+                    if (!state) return;
                     const dec = state.decomposed;
-                    const currentConsonant = this.grid[this.playerPos.y][this.playerPos.x];
+                    const currentConsonant = this.grid[this.playerPos.y][this.playerPos.x].normalize('NFC');
+                    const cho = dec.cho.normalize('NFC');
+                    const jong = dec.jong ? dec.jong.normalize('NFC') : null;
 
                     let targetConsonant = "";
-                    if (currentConsonant === dec.cho) targetConsonant = dec.jong;
+                    if (this.isSameJamo(currentConsonant, cho)) targetConsonant = dec.jong;
                     else targetConsonant = dec.cho;
 
                     const targets = this.findWarpTargets(targetConsonant);
-                    if (targets.length === 0) return;
+                    if (targets.length === 0) {
+                        const msg = `워프할 '${targetConsonant}'(${targetConsonant.charCodeAt(0)}) 칸이 그리드에 없습니다.`;
+                        this.showMessage(msg);
+                        console.error(msg);
+                        return;
+                    }
 
-                    this.showMessage("이동할 칸을 선택하세요.");
+                    this.showMessage("도약할 위치를 클릭하세요.");
                     this.highlightCells(targets, 'active');
                     this.isWarping = true;
-                    this.actionPanel.style.display = 'none'; // Hide panel while picking target
+                    this.actionPanel.style.display = 'none';
                 }
 
-                resolveWarp(targetPos) {
+                async resolveWarp(targetPos) {
                     this.isWarping = false;
                     this.clearHighlights();
 
                     this.playerPos = targetPos;
                     this.render();
 
-                    // Mark as warped - this counts as "used" for win condition but still allow Move
                     const state = this.letterStates[this.selectedBlockIndex];
-                    state.status = 'warped';
-
-                    // Show panel again for potentially moving or cancelling
-                    if (!this.checkWinCondition()) {
-                        this.selectBlock(this.selectedBlockIndex);
+                    // If already moved, both actions done → mark as 'used'
+                    if (state.status === 'moved') {
+                        state.status = 'used';
+                        this.hideActionPanel();
+                        await this.checkWinCondition();
+                    } else {
+                        state.status = 'warped';
+                        // Show panel again for move
+                        if (!await this.checkWinCondition()) {
+                            this.selectBlock(this.selectedBlockIndex);
+                        }
                     }
                 }
 
-                initiateMove() {
+                async initiateMove() {
                     const state = this.letterStates[this.selectedBlockIndex];
                     const dec = state.decomposed;
 
-                    // Execute Vowel Move
-                    this.performVowelMove(dec.jung);
+                    // Execute Vowel Move (skip for consonant_only)
+                    if (this.levelType !== 'consonant_only') {
+                        this.performVowelMove(dec.jung);
+                    }
 
-                    // Mark used
-                    state.status = 'used';
-                    this.hideActionPanel();
-                    this.checkWinCondition();
+                    // If already warped, both actions done → mark as 'used'
+                    if (state.status === 'warped') {
+                        state.status = 'used';
+                        this.hideActionPanel();
+                        await this.checkWinCondition();
+                    } else {
+                        // Mark as moved, re-show panel for potential warp
+                        state.status = 'moved';
+                        this.render();
+                        if (!await this.checkWinCondition()) {
+                            this.selectBlock(this.selectedBlockIndex);
+                        }
+                    }
                 }
 
                 performVowelMove(vowel) {
@@ -1210,52 +1811,23 @@
                     }
                 }
 
-                checkWinCondition() {
-                    // 1. Immediate Win Check
-                    if (this.playerPos.x === this.targetPos.x && this.playerPos.y === this.targetPos.y) {
-                        const allUsed = this.letterStates.every(s => s.status === 'used' || s.status === 'warped');
-                        if (allUsed) {
-                            this.showMessage("🎉 성공! 잠시 후 다음 문제로...");
-                            setTimeout(() => {
-                                this.isInputLocked = false;
-                                this.inputEl.disabled = false;
-                                this.startBtn.innerHTML = "게임<br>시작";
-                                this.startNewLevel();
-                            }, 1500);
-                            return true;
-                        } else {
-                            this.showMessage("단어의 모든 블록을 사용해야합니다.");
-                            return false;
-                        }
-                    }
-
-                    // 2. Failure Check (All letters used but not at home)
-                    const allUsed = this.letterStates.every(s => s.status === 'used' || s.status === 'warped');
-                    if (allUsed) {
-                        this.resetToStartAndRetry();
-                        return false;
-                    }
-
-                    return false;
-                }
-
-                clearHighlights() {
-                    const cells = this.gridEl.children;
-                    for (let cell of cells) {
-                        cell.classList.remove('active');
-                    }
-                }
-
-                showMessage(msg) {
-                    if (this.messageEl) this.messageEl.textContent = msg;
-                }
-
                 highlightCells(coords, className) {
                     const cells = this.gridEl.children;
                     coords.forEach(pos => {
                         const idx = pos.y * this.gridSize + pos.x;
                         if (cells[idx]) cells[idx].classList.add(className);
                     });
+                }
+
+                clearHighlights() {
+                    const cells = this.gridEl.children;
+                    for (let i = 0; i < cells.length; i++) {
+                        cells[i].classList.remove('active');
+                    }
+                }
+
+                showMessage(msg) {
+                    if (this.messageEl) this.messageEl.textContent = msg;
                 }
             }
 
