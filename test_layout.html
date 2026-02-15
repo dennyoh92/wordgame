@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Test</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --primary-color: #38bdf8;
+            --secondary-color: #818cf8;
+            --accent-color: #f472b6;
+            --text-color: #f8fafc;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 10px;
+            /* Mobile padding */
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 460px;
+            background: var(--card-bg);
+            padding: 12px;
+            /* Mobile padding */
+            box-sizing: border-box;
+            border: 1px solid white;
+            /* To see bounds */
+        }
+
+        /* Mobile styles from index.html (lines 47-72) */
+        .input-group {
+            display: flex;
+            gap: 5px;
+            /* Mobile gap */
+            margin-bottom: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            width: 100%;
+            /* Ensure it tries to take space */
+            box-sizing: border-box;
+            border: 1px solid white;
+        }
+
+        button {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            min-height: 42px;
+            border-radius: 10px;
+            line-height: 1.2;
+            box-sizing: border-box;
+            border: 1px solid white;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #start-btn {
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-container">
+        <h3>Mobile Width (360px simulated)</h3>
+        <div class="input-group">
+            <input type="text" placeholder="단어를 입력하세요" value="가나다라test">
+            <button id="start-btn">이동<br>하기</button>
+            <button id="hint-btn">정답<br>보기<br>(3:00)</button>
+        </div>
+    </div>
+</body>
+
+</html>

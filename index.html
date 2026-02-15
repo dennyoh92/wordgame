@@ -14,12 +14,12 @@
             --accent-color: #f472b6;
             --text-color: #f8fafc;
             --grid-size: 5;
-            --cell-size: clamp(50px, 15vw, 80px);
+            --cell-size: clamp(55px, 17vw, 90px);
         }
 
         @media (max-width: 480px) {
             :root {
-                --cell-size: clamp(45px, 16vw, 70px);
+                --cell-size: clamp(50px, 18vw, 75px);
             }
 
             body {
@@ -45,12 +45,12 @@
             }
 
             #game-grid {
-                gap: 6px;
+                gap: 4px;
                 padding: 8px;
             }
 
             .cell {
-                font-size: 1.1rem;
+                font-size: 1.4rem;
                 border-radius: 6px;
             }
 
@@ -108,7 +108,7 @@
 
         @media (max-width: 360px) {
             :root {
-                --cell-size: clamp(40px, 15vw, 55px);
+                --cell-size: clamp(45px, 17vw, 65px);
             }
 
             header h1 {
@@ -116,12 +116,12 @@
             }
 
             #game-grid {
-                gap: 4px;
+                gap: 2px;
                 padding: 6px;
             }
 
             .cell {
-                font-size: 0.95rem;
+                font-size: 1.2rem;
             }
 
             .letter-block {
@@ -195,12 +195,12 @@
             display: grid;
             grid-template-columns: repeat(var(--grid-size), 1fr);
             grid-template-rows: repeat(var(--grid-size), auto);
-            gap: 10px;
+            gap: 6px;
             background: rgba(255, 255, 255, 0.05);
             padding: 10px;
             border-radius: 16px;
             width: 100%;
-            max-width: calc(var(--cell-size) * var(--grid-size) + 10px * (var(--grid-size) - 1) + 20px);
+            max-width: calc(var(--cell-size) * var(--grid-size) + 6px * (var(--grid-size) - 1) + 20px);
         }
 
         .cell {
@@ -212,7 +212,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: bold;
             cursor: default;
             transition: all 0.3s ease;
@@ -366,7 +366,7 @@
             font-weight: bold;
             min-height: 1.2em;
             word-break: keep-all;
-            overflow-wrap: break-word;
+            overflow-wrap: anywhere;
         }
 
         #active-word-display {
@@ -647,7 +647,7 @@
                     <input type="text" id="word-input" placeholder="단어를 입력하세요" maxlength="10">
                     <button id="start-btn">이동<br>하기</button>
 
-                    <button id="hint-btn" class="secondary-btn">정답<br>보기</button>
+                    <button id="hint-btn" class="secondary-btn">정답보기</button>
                 </div>
             </div>
 
@@ -1623,7 +1623,7 @@
                     this.hintBtn.disabled = false;
                     this.hintBtn.style.opacity = '1';
                     this.hintBtn.style.cursor = 'pointer';
-                    this.hintBtn.innerHTML = "정답<br>보기";
+                    this.hintBtn.innerHTML = "정답보기";
 
                     this.isInputLocked = false;
                     this.inputEl.disabled = false;
@@ -1721,7 +1721,7 @@
                     const updateHintBtn = () => {
                         const m = Math.floor(hintTimeLeft / 60);
                         const s = hintTimeLeft % 60;
-                        this.hintBtn.innerHTML = `정답<br>보기<br>(${m}:${s.toString().padStart(2, '0')})`;
+                        this.hintBtn.innerHTML = `정답보기<br>(${m}:${s.toString().padStart(2, '0')})`;
                     };
                     updateHintBtn();
 
@@ -1732,7 +1732,7 @@
                             this.hintBtn.disabled = false;
                             this.hintBtn.style.opacity = '1';
                             this.hintBtn.style.cursor = 'pointer';
-                            this.hintBtn.innerHTML = "정답<br>보기";
+                            this.hintBtn.innerHTML = "정답보기";
                         } else {
                             updateHintBtn();
                         }
