@@ -56,11 +56,14 @@
 
             .input-group {
                 gap: 5px;
+                /* flex-wrap removed to keep single line */
             }
 
             #word-input {
                 padding: 10px 12px;
                 font-size: 0.9rem;
+                min-width: 0;
+                /* Allow shrinking */
             }
 
             #start-btn,
@@ -69,6 +72,8 @@
                 font-size: 0.8rem;
                 min-height: 42px;
                 border-radius: 10px;
+                white-space: nowrap;
+                /* Prevent text wrap */
             }
 
             #active-word-display {
@@ -365,7 +370,7 @@
             color: var(--secondary-color);
             font-weight: bold;
             min-height: 1.2em;
-            word-break: keep-all;
+            word-break: break-word;
             overflow-wrap: anywhere;
         }
 
@@ -674,7 +679,11 @@
                 <h3>게임 가이드</h3>
                 <div
                     style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; word-break: keep-all; line-height: 1.4;">
-                    두글자 이상의 단어를 입력하고 목적지까지 이동하세요.
+                    사전에 등록된 단어만 입력 가능(2글자 이상)
+                </div>
+                <div
+                    style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; word-break: keep-all; line-height: 1.4; letter-spacing: -0.05em; white-space: nowrap;">
+                    이동에 사용되는 음절은 현재 위치의 자음을 포함해야함
                 </div>
                 <div
                     style="font-size: 0.8rem; color: var(--secondary-color); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
@@ -709,7 +718,11 @@
                     가이드</h2>
                 <div
                     style="font-size: 0.85rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.5;">
-                    두글자 이상의 단어를 입력하고 목적지까지 이동하세요.
+                    사전에 등록된 단어만 입력 가능(2글자 이상)
+                </div>
+                <div
+                    style="font-size: 0.85rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.5; letter-spacing: -0.05em; white-space: nowrap;">
+                    이동에 사용되는 음절은 현재 위치의 자음을 포함해야함
                 </div>
                 <div
                     style="font-size: 0.85rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
@@ -1630,7 +1643,7 @@
                     this.startBtn.innerHTML = "이동<br>하기";
                     this.startBtn.onclick = () => this.handleStart();
 
-                    this.showMessage('튜토리얼 문제입니다. 자음을 보고 단어를 입력하세요!');
+                    this.showMessage('튜토리얼 문제입니다. 자음 이동과 모음 이동을 활용하여 목적지에 도달하세요.');
                 }
 
                 endPractice() {
