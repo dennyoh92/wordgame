@@ -190,7 +190,8 @@
 
         #grid-container {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
             margin-bottom: 25px;
             position: relative;
             overflow: visible;
@@ -619,10 +620,10 @@
 
         <div id="grid-container">
             <script src="dictionary.js"></script>
-            <div id="game-grid"></div>
             <div id="constraint-badge"
-                style="display: none; position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; z-index: 10; box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">
+                style="display: none; margin-bottom: 10px; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; text-align: center; color: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
                 3글자 제한</div>
+            <div id="game-grid"></div>
         </div>
 
         <div id="control-panel">
@@ -714,38 +715,29 @@
             style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 200;">
             <div
                 style="background: var(--bg-color); border-radius: 20px; padding: 28px 24px; max-width: 400px; width: 90%; border: 1px solid rgba(255,255,255,0.15); max-height: 85vh; overflow-y: auto;">
-                <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 18px; font-size: 1.4rem;">게임
+                <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 15px; font-size: 1.5rem;">게임
                     가이드</h2>
+                <p
+                    style="font-size: 1.1rem; font-weight: bold; color: var(--accent-color); text-align: center; margin-bottom: 25px; line-height: 1.4; word-break: keep-all;">
+                    이 게임은<br>'네가지 소원 - 숨바꼭질'을<br>기반으로 만들어진 팬게임입니다.
+                </p>
                 <div
-                    style="font-size: 0.85rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.5;">
+                    style="font-size: 0.9rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.5;">
                     사전에 등록된 단어만 입력 가능(2글자 이상)
                 </div>
                 <div
-                    style="font-size: 0.85rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.5; letter-spacing: -0.05em; white-space: nowrap;">
+                    style="font-size: 0.9rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); word-break: keep-all; line-height: 1.5; letter-spacing: -0.05em; white-space: nowrap;">
                     이동에 사용되는 음절은 현재 위치의 자음을 포함해야함
                 </div>
                 <div
-                    style="font-size: 0.85rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    style="font-size: 0.9rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <strong>자음 이동:</strong> 초성 ↔ 종성 위치로 이동
                 </div>
-                <div
-                    style="font-size: 0.85rem; color: var(--secondary-color); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                    <strong>모음 이동:</strong> 모음 모양에 따라 이동
+                <div style="font-size: 0.9rem; color: var(--secondary-color); margin-bottom: 25px;">
+                    <strong>모음 이동:</strong> 모음 모양에 따라 이동<br>
+                    <span style="font-size: 0.8rem; color: #64748b;">(자세한 이동 방향은 게임 내 가이드 참조)</span>
                 </div>
-                <div
-                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.8rem; color: #94a3b8; margin-bottom: 20px;">
-                    <div>ㅏ, ㅐ : 오른쪽 1칸 (→)</div>
-                    <div>ㅑ, ㅒ : 오른쪽 2칸 (⇉)</div>
-                    <div>ㅓ, ㅔ : 왼쪽 1칸 (←)</div>
-                    <div>ㅕ, ㅖ : 왼쪽 2칸 (⇇)</div>
-                    <div>ㅗ, ㅚ : 위쪽 1칸 (↑)</div>
-                    <div>ㅛ : 위쪽 2칸 (⇈)</div>
-                    <div>ㅜ, ㅟ : 아래쪽 1칸 (↓)</div>
-                    <div>ㅠ : 아래쪽 2칸 (⇊)</div>
-                    <div>ㅘ, ㅙ : 우측 상단 (↗)</div>
-                    <div>ㅝ, ㅞ : 좌측 하단 (↙)</div>
-                    <div style="grid-column: 1 / -1;">ㅡ, ㅣ, ㅢ : 이동하지 않음 (X)</div>
-                </div>
+
                 <button id="guide-popup-close"
                     style="width: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: var(--bg-color); border: none; border-radius: 12px; padding: 14px; font-weight: bold; font-size: 1rem; cursor: pointer;">확인</button>
             </div>
@@ -1156,33 +1148,42 @@
 
                 updateConstraintBadge() {
                     const badge = this.constraintBadge;
-                    badge.style.display = 'none';
-                    return; // Disable badge display
+                    badge.style.display = 'block';
+                    badge.style.background = 'rgba(255, 255, 255, 0.05)';
+                    badge.style.border = '1px solid transparent';
+
                     switch (this.levelType) {
                         case 'normal_full':
                         case 'normal':
                             badge.style.display = 'none';
-                            this.showMessage("격자 위의 자음을 보고 단어를 입력하세요.");
+                            // this.showMessage("격자 위의 자음을 보고 단어를 입력하세요.");
                             break;
                         case 'consonant_only':
-                            badge.textContent = '워프만 가능';
-                            badge.style.background = '#8b5cf6';
-                            this.showMessage("자음 워프만 사용 가능합니다! 모음 이동은 비활성화됩니다.");
+                            badge.textContent = '🟣 자음 이동만 가능';
+                            badge.style.color = '#a78bfa'; // Lighter purple for text
+                            badge.style.borderColor = '#8b5cf6';
+                            // this.showMessage("자음 워프만 사용 가능합니다! 모음 이동은 비활성화됩니다.");
                             break;
                         case 'vowel_only':
-                            badge.textContent = '이동만 가능';
-                            badge.style.background = '#f59e0b';
-                            this.showMessage("모음 이동만 사용 가능합니다! 자음 워프는 비활성화됩니다.");
+                            badge.textContent = '🟡 모음 이동만 가능';
+                            badge.style.color = '#fcd34d'; // Lighter orange/yellow for text
+                            badge.style.borderColor = '#f59e0b';
+                            // this.showMessage("모음 이동만 사용 가능합니다! 자음 워프는 비활성화됩니다.");
                             break;
                         case 'no_adjacent':
-                            badge.textContent = '목표 인접 빈칸';
-                            badge.style.background = '#ef4444';
-                            this.showMessage("빈칸들이 나타납니다!");
+                            badge.textContent = '🔴 빈칸이 등장합니다.';
+                            badge.style.color = '#fca5a5'; // Lighter red for text
+                            badge.style.borderColor = '#ef4444';
+                            // this.showMessage("빈칸들이 나타납니다!");
                             break;
                         case 'long_word':
-                            badge.textContent = '3글자 이상';
-                            badge.style.background = '#ef4444';
-                            this.showMessage("3글자 이상 단어로 목표에 도달하세요!");
+                            badge.textContent = '🔴 3글자 이상';
+                            badge.style.color = '#fca5a5'; // Lighter red for text
+                            badge.style.borderColor = '#ef4444';
+                            // this.showMessage("3글자 이상 단어로 목표에 도달하세요!");
+                            break;
+                        default:
+                            badge.style.display = 'none';
                             break;
                     }
                 }
@@ -1333,7 +1334,7 @@
                                 // Cancel warping if clicked elsewhere
                                 this.isWarping = false;
                                 this.clearHighlights();
-                                this.showMessage("워프가 취소되었습니다. 다시 선택하세요.");
+                                this.showMessage("자음 이동이 취소되었습니다. 다시 선택하세요.");
                                 this.selectBlock(this.selectedBlockIndex);
                             }
                         }
@@ -1357,17 +1358,17 @@
                             this.briefingConstraintLabel.style.color = 'var(--accent-color)';
                             break;
                         case 'consonant_only':
-                            this.briefingConstraintLabel.textContent = '🟣 워프만 가능';
-                            this.briefingConstraintDesc.textContent = '자음 워프만 사용할 수 있습니다. 모음 이동은 비활성화됩니다.';
+                            this.briefingConstraintLabel.textContent = '🟣 자음 이동만 가능';
+                            this.briefingConstraintDesc.textContent = '자음 이동만 사용할 수 있습니다. 모음 이동은 비활성화됩니다.';
                             this.briefingConstraintLabel.style.color = '#8b5cf6';
                             break;
                         case 'vowel_only':
-                            this.briefingConstraintLabel.textContent = '🟡 이동만 가능';
-                            this.briefingConstraintDesc.textContent = '모음 이동만 사용할 수 있습니다. 자음 워프는 비활성화됩니다.';
+                            this.briefingConstraintLabel.textContent = '🟡 모음 이동만 가능';
+                            this.briefingConstraintDesc.textContent = '모음 이동만 사용할 수 있습니다. 자음 이동은 비활성화됩니다.';
                             this.briefingConstraintLabel.style.color = '#f59e0b';
                             break;
                         case 'no_adjacent':
-                            this.briefingConstraintLabel.textContent = '🔴 목표 인접 빈칸';
+                            this.briefingConstraintLabel.textContent = '🔴 빈칸이 등장합니다.';
                             this.briefingConstraintDesc.textContent = '빈칸들이 나타납니다.';
                             this.briefingConstraintLabel.style.color = '#ef4444';
                             break;
@@ -1755,8 +1756,8 @@
                     this.updateConstraintBadge();
                     switch (this.levelType) {
                         case 'normal_full': this.showMessage('격자 위의 자음을 보고 단어를 입력하세요.'); break;
-                        case 'consonant_only': this.showMessage('🟠 워프만 가능! 모음 이동은 비활성화됩니다.'); break;
-                        case 'vowel_only': this.showMessage('🟡 이동만 가능! 자음 워프는 비활성화됩니다.'); break;
+                        case 'consonant_only': this.showMessage('🟠 자음 이동만 가능! 모음 이동은 비활성화됩니다.'); break;
+                        case 'vowel_only': this.showMessage('🟡 모음 이동만 가능! 자음 이동은 비활성화됩니다.'); break;
                         case 'no_adjacent': this.showMessage('🔴 빈칸들이 나타납니다.'); break;
                         case 'normal': this.showMessage('격자 위의 자음을 보고 단어를 입력하세요.'); break;
                         case 'long_word': this.showMessage('🔴 3글자 이상 단어만 사용 가능!'); break;
@@ -1949,7 +1950,7 @@
                     if (this.isWarping) {
                         this.isWarping = false;
                         this.clearHighlights();
-                        this.showMessage("워프가 취소되었습니다.");
+                        this.showMessage("자음 이동이 취소되었습니다.");
                     }
                     this.selectedBlockIndex = index;
                     this.renderWordBlocks();
@@ -2017,13 +2018,13 @@
 
                         // Show a "완료" (finish) button text if one action is already done
                         if (alreadyWarped) {
-                            this.showMessage("워프 완료! 이동하거나 완료하세요.");
+                            this.showMessage("자음 이동 완료! 모음 이동하거나 완료하세요.");
                             this.btnMove.textContent = '모음\n이동';
                         } else if (alreadyMoved) {
-                            this.showMessage(canWarp ? "이동 완료! 워프하거나 완료하세요." : "이동 완료.");
+                            this.showMessage(canWarp ? "모음 이동 완료! 자음 이동하거나 완료하세요." : "모음 이동 완료.");
                         } else {
                             if (this.levelType === 'consonant_only') {
-                                this.showMessage(canWarp ? "워프 또는 건너뛰기를 선택하세요." : "워프 대상이 없습니다. '이동'으로 건너뛰세요.");
+                                this.showMessage(canWarp ? "자음 이동 또는 건너뛰기를 선택하세요." : "자음 이동 대상이 없습니다. '모음 이동'으로 건너뛰세요.");
                             } else if (this.levelType === 'vowel_only') {
                                 this.showMessage("모음 이동을 선택하세요.");
                             } else {
@@ -2067,7 +2068,7 @@
 
                     const targets = this.findWarpTargets(targetConsonant);
                     if (targets.length === 0) {
-                        const msg = `워프할 '${targetConsonant}'(${targetConsonant.charCodeAt(0)}) 칸이 그리드에 없습니다.`;
+                        const msg = `자음 이동할 '${targetConsonant}'(${targetConsonant.charCodeAt(0)}) 칸이 그리드에 없습니다.`;
                         this.showMessage(msg);
                         console.error(msg);
                         return;
